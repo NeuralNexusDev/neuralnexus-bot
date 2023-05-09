@@ -1,0 +1,12 @@
+---
+version: "3.8"
+services:
+  NN_account-linker:
+    image: p0t4t0sandwich/neuralnexus:account-linker
+    container_name: NN_account-linker
+    environment:
+      - TZ=UTC
+    ports:
+      - "0.0.0.0:3007:3007"
+      - "0.0.0.0:50057:50057"
+    restart: unless-stopped
