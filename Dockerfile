@@ -10,6 +10,8 @@ RUN npm ci
 
 COPY ./lib ./lib
 
+COPY ./commands ./commands
+
 COPY index.ts ./
 
 COPY tsconfig.json ./
