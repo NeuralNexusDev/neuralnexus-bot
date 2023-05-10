@@ -23,8 +23,8 @@ export class DiscordBot {
             if (msg.author.bot) return;
             if (msg.content.startsWith("!")) {
                 // Parse command
-                const command: string[] = msg.content.split(/ +/g);
-                switch (command[0]) {
+                const cmd: string[] = msg.content.split(/ +/g);
+                switch (cmd[0]) {
                     // Account link command
                     case "!link":
                         console.log("link command");
@@ -43,7 +43,7 @@ export class DiscordBot {
             intents: [
                 GatewayIntentBits.Guilds,
                 GatewayIntentBits.GuildMessages,
-                // GatewayIntentBits.MessageContent
+                GatewayIntentBits.MessageContent
             ]
         });
 

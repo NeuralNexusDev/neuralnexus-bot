@@ -1,3 +1,4 @@
+import { HelixUser } from "@twurple/api";
 import { MinecraftUser, TwitchUser } from "./interfaces.js";
 
 
@@ -90,4 +91,32 @@ export async function getTwitchUserFromUsername(username: string): Promise<Twitc
 // Get Twitch User from ID
 export async function getTwitchUserFromID(id: string): Promise<TwitchUser | undefined> {
     return (await getTwitchUserFromHelix(id, 'id'));
+}
+
+// Twurple Helix Mapper
+export function mapHelixUser(user: HelixUser): TwitchUser {
+    return <TwitchUser>{
+        id: user.id,
+        login: user.name,
+        display_name: user.displayName,
+        type: user.type,
+        broadcaster_type: user.broadcasterType,
+        description: user.description,
+        profile_image_url: user.profilePictureUrl,
+        offline_image_url: user.offlinePlaceholderUrl,
+    };
+}
+
+// TwitchUser Mapper
+export function mapTwitchUser(user: TwitchUser): HelixUser {
+    return <HelixUser>{
+        id: user.id,
+        name: user.login,
+        displayName: user.display_name,
+        type: user.type,
+        broadcasterType: user.broadcaster_type,
+        description: user.description,
+        profilePictureUrl: user.profile_image_url,
+        offlinePlaceholderUrl: user.offline_image_url,
+    };
 }

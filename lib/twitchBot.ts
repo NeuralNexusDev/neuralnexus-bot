@@ -6,6 +6,8 @@ import { SupabaseClient } from "@supabase/supabase-js";
 
 import { DatabaseHandler } from "./databaseHandler.js";
 import { SupabaseHandler } from "./supabaseHandler.js";
+import { DiscordUser, MinecraftUser, TwitchUser, User } from "./interfaces.js";
+import { getMinecraftUser, mapHelixUser } from "./accountUtils.js";
 
 
 export class TwitchBot {
@@ -38,11 +40,92 @@ export class TwitchBot {
         try {
             if (text.startsWith("!")) {
                 // Parse command
-                const command: string[] = text.split(/ +/g);
-                switch (command[0]) {
+                const cmd = text.match(/([^\s]+)/g);
+                const twitchUser: TwitchUser = mapHelixUser(await this.apiClient.users.getUserByName(user));
+                const twitchID = twitchUser?.id;
+                const broadcasterUser: TwitchUser = mapHelixUser(await this.apiClient.users.getUserByName(channel.replace('#', '')));
+                const broadcasterID = broadcasterUser?.id;
+
+                switch (cmd[0]) {
                     // Account link command
-                    case "!link":
-                        console.log("link command");
+                    case '!link':
+                        console.log(cmd);
+                        if (cmd.length == 3) {
+                            const platform = cmd[1].toLowerCase();
+                            const username = cmd[2];
+            
+                            // let userID = (await this.db.getUserID("twitchID", twitchID))?.data;
+                            // if (!userID) {
+                            //     await this.db.setUser({
+                            //         twitchID,
+                            //         twitchUser,
+                            //         userID: ''
+                            //     });
+                            //     userID = (await this.db.getUserID("twitchID", twitchID))?.data;
+                            // }
+            
+                            // let dbresult: SupabaseResponse<User>;
+                            // if (platform === 'minecraft') {
+                            //     const minecraftUser: MinecraftUser = await getMinecraftUser(username);
+                            //     if (!minecraftUser) {
+                            //         return await this.chatClient.say(channel, `@${user} Invalid Minecraft username`);
+                            //     }
+            
+                            //     dbresult = await this.db.updateUser({
+                            //         userID,
+                            //         minecraft: username,
+                            //         minecraftUser
+                            //     });
+            
+                            //     if (dbresult?.error) {
+                            //         console.log(dbresult.error);
+                            //         if (dbresult.error.code === '23505') {
+                            //             return await this.chatClient.say(channel, `@${user} Minecraft account already linked`);
+                            //         }
+                            //         return await this.chatClient.say(channel, `@${user} Error linking Minecraft account`);
+                            //     }
+            
+                            //     const accountType = username.match(/^\.+[^\s]+$/) ? 'Minecraft Bedrock' : 'Minecraft Java';
+            
+                            //     return await this.chatClient.say(channel, `@${user} Your ${accountType} account has been linked`);
+            
+                            // } else if (platform === 'discord') {
+                            //     const discordUser: DiscordUser = {
+                            //         id: "",
+                            //         tag: `${username}?confirm?${twitchUser.login}`,
+                            //     }
+            
+                            //     dbresult = await this.db.updateUser({
+                            //         userID,
+                            //         discordUser
+                            //     });
+            
+                            //     if (dbresult?.error) {
+                            //         console.log(dbresult.error);
+                            //         return await this.chatClient.say(channel, `@${user} Error linking Discord account`);
+                            //     }
+            
+                            //     return await this.chatClient.say(channel, `@${user} Pending confirmation of your Discord account, please confirm the account link using our Discord Bot: /link twitch ${user}`);
+                            // }
+            
+                            // dbresult = await this.db.updateUser({
+                            //     userID,
+                            //     [platform]: username
+                            // });
+            
+                            // if (dbresult?.error) {
+                            //     console.log(dbresult.error);
+                            //     return await this.chatClient.say(channel, `@${user} Error linking account`);
+
+                            // }
+            
+                            // return await this.chatClient.say(channel, `@${user} Your ${platform} account has been linked`);
+            
+                        } else {
+                            return await this.chatClient.say(channel, `@${user} Wrong arguments. Correct usage: "!link platform platformUsername"`);
+                        }
+                        break;
+                    default:
                         break;
                 }
             }
