@@ -130,7 +130,7 @@ export class SupabaseHandler {
     }
 
     // Updater
-    async update<T extends { id: string }, R>(object: T, table: string): Promise<SupabaseResponse<R>> {
+    async update<T extends { id: string, twitchID?: string }, R>(object: T, table: string): Promise<SupabaseResponse<R>> {
         try {
             // Get the current data
             const current: SupabaseResponse<R> = await this.get<T,R>(object, table);
@@ -140,6 +140,9 @@ export class SupabaseHandler {
 
             // Merge the data
             object = { ...current.data, ...object };
+
+            object.twitchID = object.id;
+            delete object.id;
 
             // Update the data
             const { data, error } = await this.supabase
@@ -160,8 +163,8 @@ export class SupabaseHandler {
     }
 
     // Get the Twitch token from the database
-    async getToken(id?: string): Promise<SupabaseResponse<TwitchToken>> {
-        return await this.get<TwitchUser, TwitchToken>({ id }, "twitch_tokens");
+    async getToken(twitchID?: string): Promise<SupabaseResponse<TwitchToken>> {
+        return await this.get<TwitchUser, TwitchToken>({ id: twitchID }, "twitch_tokens");
     }
 
     // Update the Twitch token in the database

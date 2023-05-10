@@ -26,6 +26,7 @@ export class TwitchBot {
         this.clientID = <string>process.env.TWITCH_CLIENT_ID;
         this.clientSecret = <string>process.env.TWITCH_CLIENT_SECRET;
         this.botName = <string>process.env.TWITCH_CHANNEL;
+        this.botID = <string>process.env.TWITCH_BOT_ID;
         this.db = new DatabaseHandler(database);
         this.sbh = new SupabaseHandler(supabase);
     }
@@ -37,10 +38,11 @@ export class TwitchBot {
         try {
             if (text.startsWith("!")) {
                 // Parse command
-                const command: string[] = msg.content.split(/ +/g);
+                const command: string[] = text.split(/ +/g);
                 switch (command[0]) {
                     // Account link command
-                    case "link":
+                    case "!link":
+                        console.log("link command");
                         break;
                 }
             }
@@ -54,8 +56,8 @@ export class TwitchBot {
         try {
             // Auth Provider
             this.authProvider = new RefreshingAuthProvider({
-                clientId: process.env.CLIENT_ID,
-                clientSecret: process.env.CLIENT_SECRET,
+                clientId: process.env.TWITCH_CLIENT_ID,
+                clientSecret: process.env.TWITCH_CLIENT_SECRET,
                 onRefresh: async (userId, newTokenData) => {
                     await this.sbh.updateToken(
                         this.sbh.mapTokenToDB(userId, newTokenData)
@@ -88,5 +90,7 @@ export class TwitchBot {
         this.chatClient.onMessage(async (channel, user, text, msg) => {
             await this.chatHandler(channel, user, text, msg);
         });
+
+        console.log("Twitch bot started");
     }
 }
