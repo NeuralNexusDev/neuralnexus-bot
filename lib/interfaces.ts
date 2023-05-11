@@ -33,15 +33,23 @@ export interface MinecraftUser {
     skin?: string,
 }
 
-export type Steam64 = string;
+export interface SteamUser {
+    steamID?: string,
+    steamID3?: string,
+    steamID64?: string,
+    customURL?: string,
+    profile?: string,
+    profileState?: string,
+    profileCreated?: string,
+    name?: string,
+    realName?: string,
+    location?: string,
+}
 
 export interface User {
-    userID: string,
-    twitchID?: string,
-    twitchUser?: TwitchUser,
-    discordID?: string,
-    discordUser?: DiscordUser,
-    minecraft?: string,
-    minecraftUser?: MinecraftUser,
-    steam64?: Steam64
+    id: string,
+    twitch?: TwitchUser,
+    discord?: DiscordUser,
+    minecraft?: MinecraftUser,
+    steam?: SteamUser
 }
