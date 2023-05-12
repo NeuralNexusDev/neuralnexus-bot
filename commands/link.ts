@@ -5,6 +5,7 @@ import { mongo } from '../lib/mongo.js';
 import { DataBaseResponse, DatabaseHandler } from '../lib/databaseHandler.js';
 import { DiscordUser, MinecraftUser, TwitchUser, User } from '../lib/interfaces.js';
 import { getMinecraftUser, getTwitchUserFromUsername } from '../lib/accountUtils.js';
+import locales from '../localizations/link.json' assert { type: "json" };
 
 
 const db = new DatabaseHandler(mongo);
@@ -13,30 +14,44 @@ const db = new DatabaseHandler(mongo);
 export const command = {
 	data: new SlashCommandBuilder()
         .setName('link')
+        .setNameLocalizations(locales.link.name)
         .setDescription('Link your accounts')
+        .setDescriptionLocalizations(locales.link.description)
+        .setDefaultMemberPermissions(0)
+        .setDMPermission(true)
         .addSubcommand(subcommand =>
             subcommand.setName('twitch')
                 .setDescription('Link your Twitch account')
+                .setDescriptionLocalizations(locales.link.twitch.description)
                 .addStringOption(option =>
-                    option.setName('twitch_username')
+                    option.setName('username')
+                        .setNameLocalizations(locales.link.global.variable.username.name)
                         .setDescription('Your Twitch username')
+                        .setDescriptionLocalizations(locales.link.global.variable.username.description)
                         .setRequired(true)
                 )
         )
         .addSubcommand(subcommand =>
             subcommand.setName('game')
+                .setNameLocalizations(locales.link.game.name)
                 .setDescription('Link your game account')
+                .setDescriptionLocalizations(locales.link.game.description)
                 .addStringOption(option =>
                     option.setName('platform')
+                        .setNameLocalizations(locales.link.game.variable.platform.name)
                         .setDescription('The platform/game you play on')
+                        .setDescriptionLocalizations(locales.link.game.variable.platform.description)
                         .setRequired(true)
                         .addChoices(
                             { name: 'Minecraft', value: 'minecraft' },
                             { name: 'Steam64 ID', value: 'steam64' },
-                ))
+                        )
+                )
                 .addStringOption(option =>
                     option.setName('username')
+                        .setNameLocalizations(locales.link.global.variable.username.name)
                         .setDescription('Your username in the platform/game')
+                        .setDescriptionLocalizations(locales.link.global.variable.username.description)
                         .setRequired(true)
                 )
         ),
@@ -52,8 +67,8 @@ export const command = {
                 const platform = interaction.options.getString('platform');
                 const username = interaction.options.getString('username');
 
-                let data: DataBaseResponse<User> = await db.getUser("discord", "id", discordID);
-                let user: User = data.success ? data.data : { id: "", discord: <DiscordUser>interaction.user };
+                dbresult = await db.getUser("discord", "id", discordID);
+                let user: User = dbresult.success ? dbresult.data : { id: "", discord: <DiscordUser>interaction.user };
 
                 switch (platform) {
                     // Minecraft
@@ -98,7 +113,7 @@ export const command = {
                 dbresult = await db.updateUser(user.id, { [platform]: username });
             // Link Twitch Account
             case "twitch":
-                const twitchUsername: string = interaction.options.getString('twitch_username');
+                const twitchUsername: string = interaction.options.getString('username');
 
                 // get twitchUser from twitchUsername
                 const twitchUser: TwitchUser = await getTwitchUserFromUsername(twitchUsername);

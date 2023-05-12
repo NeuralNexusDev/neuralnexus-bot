@@ -1,5 +1,9 @@
-import { Client, Events, GatewayIntentBits, Message } from 'discord.js';
+import { Client, Collection, Events, GatewayIntentBits, Message } from 'discord.js';
 import { SupabaseClient } from '@supabase/supabase-js';
+
+
+import { command as link } from '../commands/link.js';
+
 
 import { DatabaseHandler } from "./databaseHandler.js";
 import { SupabaseHandler } from "./supabaseHandler.js";
@@ -39,13 +43,24 @@ export class DiscordBot {
     async start() {
         const _this = this;
 
-        const client: Client = new Client({
+        // Custom client type
+        interface CustomClient extends Client {
+            commands: Collection<string, any>;
+        }
+
+        const client: CustomClient = <CustomClient>(new Client({
             intents: [
                 GatewayIntentBits.Guilds,
                 GatewayIntentBits.GuildMessages,
                 GatewayIntentBits.MessageContent
             ]
-        });
+        }));
+
+        // Set up slash commands
+        const commands = [];
+        client.commands = new Collection();
+        client.commands.set(link.data.name, link);
+        commands.push(link.data.toJSON());
 
         client.once(Events.ClientReady, c => {
             console.log(`Ready! Logged in as ${c.user.tag}`);
