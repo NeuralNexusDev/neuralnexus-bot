@@ -8,9 +8,10 @@ import { DataBaseResponse, DatabaseHandler } from "./databaseHandler.js";
 import { SupabaseHandler } from "./supabaseHandler.js";
 import { DiscordUser, MinecraftUser, TwitchUser, User } from "./interfaces.js";
 import { getMinecraftUser, mapHelixUser } from "./accountUtils.js";
+import { LinkAccount } from "./linkAccount.js";
 
 
-export class TwitchBot {
+export class TwitchBot extends LinkAccount {
     // Properties
     private authProvider: RefreshingAuthProvider;
     private apiClient: ApiClient;
@@ -20,16 +21,15 @@ export class TwitchBot {
     private twitchNames: string[];
     private clientID: string;
     private clientSecret: string;
-    private db: DatabaseHandler;
     private sbh: SupabaseHandler;
 
     // Constructor
     constructor(database: any, supabase: SupabaseClient) {
+        super(database);
         this.clientID = <string>process.env.TWITCH_CLIENT_ID;
         this.clientSecret = <string>process.env.TWITCH_CLIENT_SECRET;
         this.botName = <string>process.env.TWITCH_CHANNEL;
         this.botID = <string>process.env.TWITCH_BOT_ID;
-        this.db = new DatabaseHandler(database);
         this.sbh = new SupabaseHandler(supabase);
     }
 

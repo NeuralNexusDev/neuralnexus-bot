@@ -27,10 +27,6 @@ export class LinkAccount {
         const twitchUser: TwitchUser = await getTwitchUserFromUsername(username);
 
         if (!twitchUser) {
-            const embed = {
-                color: 0xe6d132,
-                description: "Invalid Twitch username",
-            };
             return { success: false, error: "Invalid Twitch username"};
         }
 
@@ -38,57 +34,17 @@ export class LinkAccount {
         dbresult = await this.db.getUser("twitch", "id", twitchUser.id);
 
         if (dbresult?.error) {
-            console.log(dbresult.error);
-            const embed = {
-                color: 0xbf0f0f,
-                description: "An error occurred while linking your account",
-            };
-            return await interaction.editReply({ embeds: [embed]});
+            return { success: false, error: "An error occurred while linking your account"};
         }
 
-        // Check to see if linking the right user
-        if (interaction.user.tag === dbresult?.data?.discord?.tag?.split("?confirm?")[0]) {
-            // Merge old user data into new user -- TODO: make this better
-            let oldUserID = (await this.db.getUser("discord", "id", discordID))?.data?.id;
-            if (oldUserID) {
-                const olddbresult = await this.db.getUserByID(oldUserID);
-                const delOldUser = await this.db.deleteUser(oldUserID);
-                if (olddbresult?.data) {
-                    let oldUser = olddbresult.data;
-                    oldUser.id = user.id;
-                    const updateUser = { ...oldUser, ...dbresult?.data}
-                    dbresult = await this.db.updateUser(user.id, updateUser);
-                }
-            }
-
-            dbresult = await _this.db.updateUser(user.id, {
-                discord: interaction.user,
-                twitch: twitchUser
-            });
-
-        // Message if no link pending
-        } else {
-            const embed = {
-                color: 0xe6d132,
-                description: "There is no link pending for this Twitch account, please link your Discord account in Twitch chat:\n```!link discord username#0000```",
-            };
-            return await interaction.editReply({ embeds: [embed]});
-        }
+        // Link account
+        dbresult = await this.db.updateUser(user.id, { twitch: twitchUser });
 
         if (dbresult?.error) {
-            console.log(dbresult.error);
-            const embed = {
-                color: 0xbf0f0f,
-                description: "An error occurred while linking your account",
-            };
-            return await interaction.editReply({ embeds: [embed]});
+            return { success: false, error: "An error occurred while linking your account"};
         }
 
-        const embed = {
-            color: 0x65bf65,
-            description: "Your Twitch account has been linked",
-        };
-        return await interaction.editReply({ embeds: [embed]});
+        return { success: true, data: "Your Twitch account has been linked" };
     }
     
     async linkMinecraftAccount(username: string, user: User): Promise<LinkSuccess<string>> {
@@ -140,6 +96,7 @@ export class LinkAccount {
             }
     
             if (dbresult?.error) {
+                console.log(dbresult.error);
                 return { success: false, error: "An error occurred while linking your account"}
             } else {
                 return { success: true, data: `Your ${platform} account has been linked` };

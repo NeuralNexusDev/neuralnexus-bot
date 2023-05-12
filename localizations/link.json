@@ -31,7 +31,7 @@
             "th": "ลิงค์",
             "tr": "bağlantı",
             "uk": "посилання",
-            "vi": "liên kết"
+            "vi": "liên_kết"
         },
         "description": {
             "id": "Tautkan akun Anda",
@@ -73,17 +73,17 @@
                         "id": "nama_belakang",
                         "en-US": "username",
                         "en-GB": "username",
-                        "bg": "потребителско име",
+                        "bg": "потребителско_име",
                         "zh-CN": "用户名",
                         "zh-TW": "用戶名",
-                        "hr": "korisničko ime",
-                        "cs": "uživatelské jméno",
+                        "hr": "korisničko_ime",
+                        "cs": "uživatelské_jméno",
                         "da": "brugernavn",
                         "nl": "gebruikersnaam",
                         "fi": "käyttäjänimi",
-                        "fr": "nom_d'utilisateur",
+                        "fr": "nom_d_utilisateur",
                         "de": "benutzername",
-                        "el": "όνομα χρήστη",
+                        "el": "όνομα_χρήστη",
                         "hi": "उपयोगकर्ता_नाम",
                         "hu": "felhasználónév",
                         "it": "nome_utente",
@@ -99,7 +99,7 @@
                         "sv-SE": "användarnamn",
                         "th": "ชื่อผู้ใช้",
                         "tr": "kullanıcı_adı",
-                        "uk": "ім'я_користувача",
+                        "uk": "ім_я_користувача",
                         "vi": "tên_người_dùng"
                     },
                     "description": {
@@ -207,7 +207,7 @@
                 "th": "เกม",
                 "tr": "oyun",
                 "uk": "гра",
-                "vi": "trò chơi"
+                "vi": "trò_chơi"
             },
             "description": {
                 "id": "Nama permainan Anda",
@@ -275,7 +275,7 @@
                         "th": "แพลตฟอร์ม",
                         "tr": "platform",
                         "uk": "платформа",
-                        "vi": "nền tảng"
+                        "vi": "nền_tảng"
                     },
                     "description": {
                         "id": "Platform/game yang Anda mainkan",
