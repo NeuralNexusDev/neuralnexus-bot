@@ -1,5 +1,5 @@
-import { ApiClient, HelixChatChatter, HelixPaginatedResultWithTotal } from "@twurple/api";
-import { AccessToken, RefreshingAuthProvider, exchangeCode } from "@twurple/auth";
+import { ApiClient } from "@twurple/api";
+import { RefreshingAuthProvider } from "@twurple/auth";
 import { ChatClient } from "@twurple/chat";
 import { SupabaseClient } from "@supabase/supabase-js";
 
@@ -42,9 +42,7 @@ export class TwitchBot {
                 // Parse command
                 const cmd = text.match(/([^\s]+)/g);
                 const twitchUser: TwitchUser = mapHelixUser(await this.apiClient.users.getUserByName(user));
-                const twitchID = twitchUser?.id;
                 const broadcasterUser: TwitchUser = mapHelixUser(await this.apiClient.users.getUserByName(channel.replace('#', '')));
-                const broadcasterID = broadcasterUser?.id;
 
                 let dbresult: DataBaseResponse<User>;
                 switch (cmd[0]) {
@@ -55,7 +53,7 @@ export class TwitchBot {
                             const platform = cmd[1].toLowerCase();
                             const username = cmd[2];
 
-                            dbresult = await this.db.getUser("twitch", "id", twitchID);
+                            dbresult = await this.db.getUser("twitch", "id", twitchUser.id);
                             let user: User = dbresult.success ? dbresult.data : { id: "", twitch: <TwitchUser>twitchUser };
 
                             if (platform === 'minecraft') {
@@ -106,7 +104,6 @@ export class TwitchBot {
                         } else {
                             return await this.chatClient.say(channel, `@${user} Wrong arguments. Correct usage: "!link platform platformUsername"`);
                         }
-                        break;
                     default:
                         break;
                 }
