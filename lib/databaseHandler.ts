@@ -42,4 +42,32 @@ export class DatabaseHandler {
             return { success: false, error: error };
         }
     }
+
+    async updateUser(id: string, data: any): Promise<DataBaseResponse<User>> {
+        try {
+            const user = (await this.db.collection("users").findOneAndUpdate({ id }, { $set: data }, { returnOriginal: false })).value;
+            if (user) {
+                return { success: true, data: user };
+            } else {
+                return { success: false, error: "User not found" };
+            }
+        } catch (error) {
+            console.log(error);
+            return { success: false, error: error };
+        }
+    }
+
+    async deleteUser(id: string): Promise<DataBaseResponse<User>> {
+        try {
+            const user = (await this.db.collection("users").findOneAndDelete({ id })).value;
+            if (user) {
+                return { success: true, data: user };
+            } else {
+                return { success: false, error: "User not found" };
+            }
+        } catch (error) {
+            console.log(error);
+            return { success: false, error: error };
+        }
+    }
 }

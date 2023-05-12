@@ -79,6 +79,7 @@ export async function getTwitchUserFromHelix(identifier: string, identifierType:
         });
         return (await result.json())?.data[0];
     } catch (error) {
+        console.log(error);
         return undefined;
     }
 }
