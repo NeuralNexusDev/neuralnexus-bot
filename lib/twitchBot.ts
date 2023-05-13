@@ -8,7 +8,7 @@ import { DataBaseResponse, DatabaseHandler } from "./databaseHandler.js";
 import { SupabaseHandler } from "./supabaseHandler.js";
 import { DiscordUser, MinecraftUser, TwitchUser, User } from "./interfaces.js";
 import { getMinecraftUser, mapHelixUser } from "./accountUtils.js";
-import { LinkAccount } from "./linkAccount.js";
+import { LinkAccount, LinkSuccess, PlatformInfo } from "./linkAccount.js";
 
 
 export class TwitchBot extends LinkAccount {
@@ -42,67 +42,43 @@ export class TwitchBot extends LinkAccount {
                 // Parse command
                 const cmd = text.match(/([^\s]+)/g);
                 const twitchUser: TwitchUser = mapHelixUser(await this.apiClient.users.getUserByName(user));
-                const broadcasterUser: TwitchUser = mapHelixUser(await this.apiClient.users.getUserByName(channel.replace('#', '')));
 
-                let dbresult: DataBaseResponse<User>;
                 switch (cmd[0].toLowerCase()) {
                     // Account link command
                     case '!link':
-                        console.log(cmd);
                         if (cmd.length == 3) {
                             const platform = cmd[1].toLowerCase();
                             const username = cmd[2];
 
-                            dbresult = await this.db.getUser("twitch", "id", twitchUser.id);
-                            let user: User = dbresult.success ? dbresult.data : { id: "", twitch: <TwitchUser>twitchUser };
-
-                            if (platform === 'minecraft') {
-                                const minecraftUser: MinecraftUser = await getMinecraftUser(username);
-                                if (!minecraftUser) {
-                                    return await this.chatClient.say(channel, `@${user} Invalid Minecraft username`);
+                            let dbresult: DataBaseResponse<User> = await this.db.getUser("twitch", "id", twitchUser.id);
+                            let user: User;
+                            if (dbresult.success === false && dbresult.error === "User not found") {
+                                dbresult = await this.db.createUser({ id: "", twitch: <TwitchUser>twitchUser });
+                                if (dbresult.success === true) {
+                                    user = dbresult.data;
                                 }
-
-                                dbresult = await this.db.updateUser(user.id, { minecraft: minecraftUser });
-
-                                if (dbresult?.error) {
-                                    console.log(dbresult.error);
-                                    if (dbresult.error.code === '23505') {
-                                        return await this.chatClient.say(channel, `@${user} Minecraft account already linked`);
-                                    }
-                                    return await this.chatClient.say(channel, `@${user} Error linking Minecraft account`);
-                                }
-
-                                const accountType = username.match(/^\.+[^\s]+$/) ? 'Minecraft Bedrock' : 'Minecraft Java';
-
-                                return await this.chatClient.say(channel, `@${user} Your ${accountType} account has been linked`);
-
-                            } else if (platform === 'discord') {
-                                const discordUser: DiscordUser = {
-                                    id: "",
-                                    tag: `${username}?confirm?${twitchUser.login}`,
-                                }
-
-                                dbresult = await this.db.updateUser(user.id, { discord: discordUser });
-
-                                if (dbresult?.error) {
-                                    console.log(dbresult.error);
-                                    return await this.chatClient.say(channel, `@${user} Error linking Discord account`);
-                                }
-
-                                return await this.chatClient.say(channel, `@${user} Pending confirmation of your Discord account, please confirm the account link using our Discord Bot: /link twitch ${user}`);
+                            } else {
+                                user = dbresult.data;
                             }
 
-                            dbresult = await this.db.updateUser(user.id, { [platform]: username });
-
-                            if (dbresult?.error) {
+                            if (dbresult.success === false) {
                                 console.log(dbresult.error);
-                                return await this.chatClient.say(channel, `@${user} Error linking account`);
+                                return await this.chatClient.say(channel, `@${twitchUser.login} An error occurred while linking your account`);
                             }
 
-                            return await this.chatClient.say(channel, `@${user} Your ${platform} account has been linked`);
+                            const fromPlatform: PlatformInfo = { platform: "twitch", username: twitchUser.login, id: twitchUser.id };
+                            const toPlatform: PlatformInfo = { platform: platform, username: username };
+
+                            let linkResult: LinkSuccess<string> = await this.linkAccount(fromPlatform, toPlatform, user);
+
+                            if (linkResult.success === false) {
+                                return await this.chatClient.say(channel, `@${twitchUser.login} ${linkResult.error}`);
+                            } else {
+                                return await this.chatClient.say(channel, `@${twitchUser.login} ${linkResult.data}`);
+                            }
 
                         } else {
-                            return await this.chatClient.say(channel, `@${user} Wrong arguments. Correct usage: "!link platform platformUsername"`);
+                            return await this.chatClient.say(channel, `@${twitchUser.login} Wrong arguments. Correct usage: "!link platform platformUsername"`);
                         }
                     default:
                         break;

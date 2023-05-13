@@ -10,10 +10,10 @@ NeuralNexus's internal account linking service and API.
 
 ## TODO
 
-- [ ] Create Twitch Bot for account linking commands
-- [ ] Create Discord Bot for account linking commands
-- [ ] Pending link system
-- [ ] Non-destructive account merging
+- [x] Create Twitch Bot for account linking commands
+- [x] Create Discord Bot for account linking commands
+- [x] Pending link system
+- [x] Non-destructive account merging
 - [ ] Set up alternative Twitch OAuth flow for account linking
 - [ ] Set up alternative Discord OAuth flow for account linking
   - [ ] Include an option to link a Discord account's known connections

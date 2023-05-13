@@ -3,7 +3,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 
 
 import { SupabaseHandler } from "./supabaseHandler.js";
-import { LinkAccount, LinkSuccess } from './linkAccount.js';
+import { LinkAccount, LinkSuccess, PlatformInfo } from './linkAccount.js';
 import { DataBaseResponse } from './databaseHandler.js';
 import { DiscordUser, MinecraftUser, TwitchUser, User } from './interfaces.js';
 import { getMinecraftUser, getTwitchUserFromUsername } from './accountUtils.js';
@@ -79,7 +79,7 @@ export class DiscordBot extends LinkAccount {
                                 .setRequired(true)
                                 .addChoices(
                                     { name: 'Minecraft', value: 'minecraft' },
-                                    { name: 'Steam64 ID', value: 'steam64' },
+                                    { name: 'Steam64 ID', value: 'steam64' }
                                 )
                         )
                         .addStringOption(option =>
@@ -92,10 +92,9 @@ export class DiscordBot extends LinkAccount {
                 ),
             async execute(interaction: any) {
                 await interaction.deferReply({ ephemeral: true });
-                const subcommand = interaction.options.getSubcommand();
                 const discordID = interaction.user.id;
-        
-                const platform = interaction.options.getString('platform');
+                const subcommand = interaction.options.getSubcommand();
+                const platform = subcommand === "twitch" ? "twitch" : interaction.options.getString('platform');
                 const username = interaction.options.getString('username');
 
                 let dbresult: DataBaseResponse<User> = await _this.db.getUser("discord", "id", discordID);
@@ -114,7 +113,10 @@ export class DiscordBot extends LinkAccount {
                     return await interaction.editReply({ content: "An error occurred while linking your account", ephemeral: true });
                 }
 
-                let linkResult: LinkSuccess<string> = await _this.linkAccount(subcommand, platform, username, discordID, user);
+                const fromPlatform: PlatformInfo = { platform: "discord", username: interaction.user.username, id: discordID };
+                const toPlatform: PlatformInfo = { platform: platform, username: username };
+
+                let linkResult: LinkSuccess<string> = await _this.linkAccount(fromPlatform, toPlatform, user);
 
                 const embed = { color: 0x65bf65, description: "" };
                 if (linkResult.success === false) {
