@@ -1,10 +1,15 @@
+import MUUID from 'uuid-mongodb';
+
+
 import { User } from "./interfaces.js";
+
 
 export interface DataBaseResponse<T> {
     success: boolean,
     data?: T,
     error?: any
 }
+
 
 export class DatabaseHandler {
     private db: any;
@@ -62,6 +67,30 @@ export class DatabaseHandler {
             const user = (await this.db.collection("users").findOneAndDelete({ id })).value;
             if (user) {
                 return { success: true, data: user };
+            } else {
+                return { success: false, error: "User not found" };
+            }
+        } catch (error) {
+            console.log(error);
+            return { success: false, error: error };
+        }
+    }
+
+    async createUser(user: any): Promise<DataBaseResponse<User>> {
+        try {
+            user.id = MUUID.v4().toString();
+
+            const newUser = await this.db.collection("users").insertOne(user);
+            if (newUser) {
+
+                let dbresult: DataBaseResponse<User> = await this.getUserByID(user.id);
+                if (dbresult.success === false) {
+                    console.log(dbresult.error);
+                    return { success: false, error: "An error occurred while creating your account" };
+                }
+
+                return { success: true, data: dbresult.data };
+
             } else {
                 return { success: false, error: "User not found" };
             }

@@ -4,7 +4,7 @@ import { MinecraftUser, TwitchUser, User } from "./interfaces.js";
 import { DataBaseResponse, DatabaseHandler } from './databaseHandler.js';
 
 
-interface LinkSuccess<T> {
+export interface LinkSuccess<T> {
     success: boolean;
     data?: T;
     error?: any;
@@ -21,14 +21,24 @@ export class LinkAccount {
 
     // Methods
     async linkTwitchAccount(username: string, platformId: string, user: User): Promise<LinkSuccess<string>> {
-        let dbresult: DataBaseResponse<User>;
-
         // get twitchUser from twitchUsername
         const twitchUser: TwitchUser = await getTwitchUserFromUsername(username);
 
         if (!twitchUser) {
             return { success: false, error: "Invalid Twitch username"};
         }
+
+        // Check if account is already linked
+        let dbresult: DataBaseResponse<User> = await this.db.getUser("minecraft", "id", twitchUser.id);
+
+        if (dbresult.success === false && dbresult?.error !== "User not found") {
+            console.log(dbresult.error);
+            return { success: false, error: "An error occurred while linking your account"}
+        } else if (dbresult.success === true && dbresult.data.id !== user.id) {
+            return { success: false, error: "This Minecraft account has already been linked" };
+        }
+
+        dbresult = await this.db.updateUser(user.id, { twitch: twitchUser });
 
         // Get User from TwitchUser
         dbresult = await this.db.getUser("twitch", "id", twitchUser.id);
@@ -41,6 +51,7 @@ export class LinkAccount {
         dbresult = await this.db.updateUser(user.id, { twitch: twitchUser });
 
         if (dbresult?.error) {
+            console.log(dbresult.error);
             return { success: false, error: "An error occurred while linking your account"};
         }
 
@@ -49,14 +60,25 @@ export class LinkAccount {
     
     async linkMinecraftAccount(username: string, user: User): Promise<LinkSuccess<string>> {
         const minecraftUser: MinecraftUser = await getMinecraftUser(username);
-    
+
         if (!minecraftUser) {
             return { success: false, error: "Invalid Minecraft username"}
         }
-    
-        let dbresult = await this.db.updateUser(user.id, { minecraft: minecraftUser });
-    
+
+        // Check if account is already linked
+        let dbresult: DataBaseResponse<User> = await this.db.getUser("minecraft", "id", minecraftUser.id);
+
+        if (dbresult.success === false && dbresult?.error !== "User not found") {
+            console.log(dbresult.error);
+            return { success: false, error: "An error occurred while linking your account"}
+        } else if (dbresult.success === true && dbresult.data.id !== user.id) {
+            return { success: false, error: "This Minecraft account has already been linked" };
+        }
+
+        dbresult = await this.db.updateUser(user.id, { minecraft: minecraftUser });
+
         if (dbresult?.error) {
+            console.log(dbresult.error);
             // if (dbresult.error.code === '23505') {
             //     const embed = {
             //         color: 0xe6d132,
@@ -66,42 +88,38 @@ export class LinkAccount {
             // }
             return { success: false, error: "An error occurred while linking your account"}
         }
-    
+
         const accountType = username.match(/^\.+[^\s]+$/) ? 'Minecraft Bedrock' : 'Minecraft Java';
-    
-        const embed = {
-            color: 0x65bf65,
-            description: `Your ${accountType} account has been linked`,
-        };
+
         return { success: true, data: `Your ${accountType} account has been linked` };
     }
     
-    async linkAccount(subcommand: string, platform: string, username: string, platformId: string, user: User): Promise<LinkSuccess<string>> {
+    async linkAccount(subcommand: string, toPlatform: string, toPlatformUsername: string, fromPlatformId: string, user: User): Promise<LinkSuccess<string>> {
         try {
             let dbresult: DataBaseResponse<User>;
             switch (subcommand) {
                 // Link Game Account
                 case "game":
-                    switch (platform) {
+                    switch (toPlatform) {
                         // Minecraft
                         case 'minecraft':
-                            return await this.linkMinecraftAccount(username, user);
+                            return await this.linkMinecraftAccount(toPlatformUsername, user);
                     }
                     // Generic catch-all
-                    dbresult = await this.db.updateUser(user.id, { [platform]: username });
+                    dbresult = await this.db.updateUser(user.id, { [toPlatform]: toPlatformUsername });
 
                 // Link Twitch Account
                 case 'twitch':
-                    return await this.linkTwitchAccount(username, platformId, user);
+                    return await this.linkTwitchAccount(toPlatformUsername, fromPlatformId, user);
             }
-    
+
             if (dbresult?.error) {
                 console.log(dbresult.error);
                 return { success: false, error: "An error occurred while linking your account"}
             } else {
-                return { success: true, data: `Your ${platform} account has been linked` };
+                return { success: true, data: `Your ${toPlatform} account has been linked` };
             }
-    
+
         } catch (error) {
             console.log(error);
             return { success: false, error: error };

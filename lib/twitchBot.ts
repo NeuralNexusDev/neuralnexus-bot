@@ -45,7 +45,7 @@ export class TwitchBot extends LinkAccount {
                 const broadcasterUser: TwitchUser = mapHelixUser(await this.apiClient.users.getUserByName(channel.replace('#', '')));
 
                 let dbresult: DataBaseResponse<User>;
-                switch (cmd[0]) {
+                switch (cmd[0].toLowerCase()) {
                     // Account link command
                     case '!link':
                         console.log(cmd);

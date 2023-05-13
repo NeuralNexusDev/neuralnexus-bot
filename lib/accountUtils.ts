@@ -33,14 +33,12 @@ export async function getMinecraftJavaUser(username: string): Promise<MinecraftU
 // Get Minecraft Bedrock User
 export async function getMinecraftBedrockUser(username: string, prefix: string = "."): Promise<MinecraftUser | undefined> {
     username = username.replace(prefix, '');
-    const result = await apiCall(`https://uuid.kejona.dev/api/v1/gamertag/${username}`, 'GET');
-
-    const geyserSkin = await apiCall(`https://api.geysermc.org/v2/skin/${result.xuid}`, 'GET');
+    const result = await apiCall(`https://uuid.kejona.dev/api/v1/bedrock/gamertag/${username}`, 'GET');
 
     return <MinecraftUser>{
         id: result.floodgateuid,
         username: `${prefix}${result.gamertag}`,
-        skin: `https://textures.minecraft.net/texture/${geyserSkin.texture_id}`
+        skin: result.skin
     };
 }
 
