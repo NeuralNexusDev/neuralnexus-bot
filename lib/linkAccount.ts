@@ -26,6 +26,11 @@ export class LinkAccount {
     }
 
     // Methods
+    logger(platform: string, channelId: string, userId: string, message: string): void {
+        message = message.replace(/\n/g, "\\n");
+        console.log(`[${new Date().toISOString()}] [NN Account Linker] [${platform}] [${channelId}] [${userId}]: ${message}`);
+    }
+
     async linkTwitchAccount(fromPlatform: PlatformInfo, toPlatform: PlatformInfo, user: User): Promise<LinkSuccess<string>> {
         // get twitchUser from twitchUsername
         const twitchUser: TwitchUser = await getTwitchUserFromUsername(toPlatform.username);
@@ -41,7 +46,7 @@ export class LinkAccount {
             twitchUserFromDB = dbresult.data;
         } else if (dbresult.success === false) {
             console.log(dbresult.error);
-            return { success: false, error: "An error occurred while linking your account" };
+            return { success: false, error: `There is no link pending for this Twitch account, please link your ${fromPlatform.platform} account in Twitch chat:\n\`\`\`!link ${fromPlatform.platform} username\`\`\`` };
         }
 
         // Check to see if linking the right user

@@ -29,17 +29,70 @@ export class DiscordBot extends LinkAccount {
         try {
             if (msg.author.bot) return;
             if (msg.content.startsWith("!")) {
+                this.logger("discord", msg.guild.id, msg.author.id, msg.content);
+
                 // Parse command
-                const cmd: string[] = msg.content.split(/ +/g);
-                switch (cmd[0]) {
+                const cmd = msg.content.match(/([^\s]+)/g);
+                const discordUser: DiscordUser = msg.author;
+
+                let message: string;
+                switch (cmd[0].toLowerCase()) {
                     // Account link command
-                    case "!link":
-                        console.log("link command");
+                    case '!link':
+                        if (cmd.length == 3) {
+                            const platform = cmd[1].toLowerCase();
+                            const username = cmd[2];
+
+                            let dbresult: DataBaseResponse<User> = await this.db.getUser("discord", "id", discordUser.id);
+                            let user: User;
+                            if (dbresult.success === false && dbresult.error === "User not found") {
+                                dbresult = await this.db.createUser({ id: "", discord: <DiscordUser>discordUser });
+                                if (dbresult.success === true) {
+                                    user = dbresult.data;
+                                }
+                            } else {
+                                user = dbresult.data;
+                            }
+
+                            if (dbresult.success === false) {
+                                message = "An error occurred while linking your account";
+                                this.logger("discord", msg.guild.id, this.clientId, dbresult.error);
+                                this.logger("discord", msg.guild.id, msg.author.id, message);
+                                await msg.reply({ embeds: [{ color: 0xbf0f0f, description: message }] });
+                                return await msg.delete();
+                            }
+
+                            const fromPlatform: PlatformInfo = { platform: "discord", username: msg.author.username, id: msg.author.id };
+                            const toPlatform: PlatformInfo = { platform: platform, username: username };
+
+                            let linkResult: LinkSuccess<string> = await this.linkAccount(fromPlatform, toPlatform, user);
+
+                            const embed = { color: 0x65bf65, description: "" };
+                            if (linkResult.success === false) {
+                                embed.color = 0xbf0f0f;
+                                embed.description = linkResult.error;
+                            } else {
+                                embed.color = 0x65bf65;
+                                embed.description = linkResult.data;
+                            }
+
+                            message = embed.description;
+                            this.logger("discord", msg.guild.id, this.clientId, message);
+                            await msg.reply({ embeds: [embed] });
+                            return await msg.delete();
+
+                        } else {
+                            message = `Wrong arguments. Correct usage: "!link platform platformUsername"`;
+                            this.logger("discord", msg.guild.id, this.clientId, message);
+                            await msg.reply({ embeds: [{ color: 0xbf0f0f, description: message }] });
+                            return await msg.delete();
+                        }
+                    default:
                         break;
                 }
             }
         } catch (error) {
-            console.log(error);
+            this.logger("discord", msg.guild.id, this.clientId, error);
         }
     }
 
@@ -97,8 +150,11 @@ export class DiscordBot extends LinkAccount {
                 const platform = subcommand === "twitch" ? "twitch" : interaction.options.getString('platform');
                 const username = interaction.options.getString('username');
 
+                _this.logger("discord", interaction.guild.id, discordID, interaction.commandName + " " + subcommand + " " + platform + " " + username);
+
                 let dbresult: DataBaseResponse<User> = await _this.db.getUser("discord", "id", discordID);
                 let user: User;
+                let message: string;
                 if (dbresult.success === false && dbresult.error === "User not found") {
                     dbresult = await _this.db.createUser({ discord: <DiscordUser>interaction.user });
                     if (dbresult.success === true) {
@@ -109,8 +165,10 @@ export class DiscordBot extends LinkAccount {
                 }
 
                 if (dbresult.success === false) {
-                    console.log(dbresult.error);
-                    return await interaction.editReply({ content: "An error occurred while linking your account", ephemeral: true });
+                    message = "An error occurred while linking your account";
+                    _this.logger("discord", interaction.guild.id, _this.clientId, dbresult.error);
+                    _this.logger("discord", interaction.guild.id, interaction.user.id, message);
+                    return await interaction.editReply({ embeds: [{ color: 0x65bf65, description: message }], ephemeral: true });
                 }
 
                 const fromPlatform: PlatformInfo = { platform: "discord", username: interaction.user.username, id: discordID };
@@ -127,6 +185,8 @@ export class DiscordBot extends LinkAccount {
                     embed.description = linkResult.data;
                 }
 
+                message = embed.description;
+                _this.logger("discord", interaction.guild.id, _this.clientId, message);
                 return await interaction.editReply({ embeds: [embed] });
             }
         };
@@ -186,6 +246,10 @@ export class DiscordBot extends LinkAccount {
                     console.error(error);
                 }
             })();
+        });
+
+        client.on(Events.MessageCreate, async msg => {
+            await _this.chatHandler(msg);
         });
 
         client.login(this.token);

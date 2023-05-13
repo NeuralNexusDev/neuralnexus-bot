@@ -43,10 +43,13 @@ export class TwitchBot extends LinkAccount {
                 const cmd = text.match(/([^\s]+)/g);
                 const twitchUser: TwitchUser = mapHelixUser(await this.apiClient.users.getUserByName(user));
 
+                let message: string;
                 switch (cmd[0].toLowerCase()) {
                     // Account link command
                     case '!link':
                         if (cmd.length == 3) {
+                            this.logger("twitch", channel, twitchUser.id, text);
+
                             const platform = cmd[1].toLowerCase();
                             const username = cmd[2];
 
@@ -62,8 +65,10 @@ export class TwitchBot extends LinkAccount {
                             }
 
                             if (dbresult.success === false) {
-                                console.log(dbresult.error);
-                                return await this.chatClient.say(channel, `@${twitchUser.login} An error occurred while linking your account`);
+                                message = `@${twitchUser.login} An error occurred while linking your account`;
+                                this.logger("twitch", channel, this.botID, message);
+                                this.logger("twitch", channel, this.botID, dbresult.error);
+                                return await this.chatClient.say(channel, message);
                             }
 
                             const fromPlatform: PlatformInfo = { platform: "twitch", username: twitchUser.login, id: twitchUser.id };
@@ -71,14 +76,16 @@ export class TwitchBot extends LinkAccount {
 
                             let linkResult: LinkSuccess<string> = await this.linkAccount(fromPlatform, toPlatform, user);
 
-                            if (linkResult.success === false) {
-                                return await this.chatClient.say(channel, `@${twitchUser.login} ${linkResult.error}`);
-                            } else {
-                                return await this.chatClient.say(channel, `@${twitchUser.login} ${linkResult.data}`);
-                            }
+                            message = linkResult.success === false ?
+                                `@${twitchUser.login} ${linkResult.error}` :
+                                `@${twitchUser.login} Your account has been linked`;
+                            this.logger("twitch", channel, this.botID, message);
+                            return await this.chatClient.say(channel, message);
 
                         } else {
-                            return await this.chatClient.say(channel, `@${twitchUser.login} Wrong arguments. Correct usage: "!link platform platformUsername"`);
+                            message = `@${twitchUser.login} Wrong arguments. Correct usage: "!link platform platformUsername"`;
+                            this.logger("twitch", channel, this.botID, message);
+                            return await this.chatClient.say(channel, message);
                         }
                     default:
                         break;

@@ -8,9 +8,9 @@ COPY package-lock.json ./
 
 RUN npm ci
 
-COPY ./lib ./lib
+COPY ./localizations ./localizations
 
-COPY ./commands ./commands
+COPY ./lib ./lib
 
 COPY index.ts ./
 
