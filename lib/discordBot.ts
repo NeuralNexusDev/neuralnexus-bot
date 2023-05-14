@@ -5,8 +5,7 @@ import { SupabaseClient } from '@supabase/supabase-js';
 import { SupabaseHandler } from "./supabaseHandler.js";
 import { LinkAccount, LinkSuccess, PlatformInfo } from './linkAccount.js';
 import { DataBaseResponse } from './databaseHandler.js';
-import { DiscordUser, MinecraftUser, TwitchUser, User } from './interfaces.js';
-import { getMinecraftUser, getTwitchUserFromUsername } from './accountUtils.js';
+import { DiscordUser, User } from './interfaces.js';
 import linkLocales from '../localizations/link.json' assert { type: "json" };
 
 
@@ -146,11 +145,12 @@ export class DiscordBot extends LinkAccount {
             async execute(interaction: any) {
                 await interaction.deferReply({ ephemeral: true });
                 const discordID = interaction.user.id;
+                const guildID = interaction.guild.id;
                 const subcommand = interaction.options.getSubcommand();
                 const platform = subcommand === "twitch" ? "twitch" : interaction.options.getString('platform');
                 const username = interaction.options.getString('username');
 
-                _this.logger("discord", interaction.guild.id, discordID, interaction.commandName + " " + subcommand + " " + platform + " " + username);
+                _this.logger("discord", guildID, discordID, interaction.commandName + " " + subcommand + " " + platform + " " + username);
 
                 let dbresult: DataBaseResponse<User> = await _this.db.getUser("discord", "id", discordID);
                 let user: User;
@@ -166,8 +166,8 @@ export class DiscordBot extends LinkAccount {
 
                 if (dbresult.success === false) {
                     message = "An error occurred while linking your account";
-                    _this.logger("discord", interaction.guild.id, _this.clientId, dbresult.error);
-                    _this.logger("discord", interaction.guild.id, interaction.user.id, message);
+                    _this.logger("discord", guildID, _this.clientId, dbresult.error);
+                    _this.logger("discord", guildID, interaction.user.id, message);
                     return await interaction.editReply({ embeds: [{ color: 0x65bf65, description: message }], ephemeral: true });
                 }
 
@@ -186,7 +186,7 @@ export class DiscordBot extends LinkAccount {
                 }
 
                 message = embed.description;
-                _this.logger("discord", interaction.guild.id, _this.clientId, message);
+                _this.logger("discord", guildID, _this.clientId, message);
                 return await interaction.editReply({ embeds: [embed] });
             }
         };

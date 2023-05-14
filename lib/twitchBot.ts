@@ -4,10 +4,10 @@ import { ChatClient } from "@twurple/chat";
 import { SupabaseClient } from "@supabase/supabase-js";
 
 
-import { DataBaseResponse, DatabaseHandler } from "./databaseHandler.js";
+import { DataBaseResponse } from "./databaseHandler.js";
 import { SupabaseHandler } from "./supabaseHandler.js";
-import { DiscordUser, MinecraftUser, TwitchUser, User } from "./interfaces.js";
-import { getMinecraftUser, mapHelixUser } from "./accountUtils.js";
+import { TwitchUser, User } from "./interfaces.js";
+import { mapHelixUser } from "./accountUtils.js";
 import { LinkAccount, LinkSuccess, PlatformInfo } from "./linkAccount.js";
 
 

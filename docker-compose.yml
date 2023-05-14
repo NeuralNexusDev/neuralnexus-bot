@@ -16,6 +16,6 @@ services:
       - SUPABASE_URL=
       - SUPABASE_SERVICE_ROLE=
     ports:
-      - "0.0.0.0:3007:3007"
-      - "0.0.0.0:50057:50057"
+      - "0.0.0.0:3008:3008"
+      - "0.0.0.0:50058:50058"
     restart: unless-stopped
