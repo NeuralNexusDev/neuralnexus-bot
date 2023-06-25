@@ -22,3 +22,4 @@ NeuralNexus's internal account linking service and API.
 - [ ] Set up routes for account linking (Authenticated route)
 - [ ] Route to get account names (Unauthenticated route)
 - [ ] Route to get user account info (Authenticated route)
+- [ ] Route for updating account info (Authenticated route)
