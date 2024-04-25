@@ -1,133 +1,34 @@
 package main
 
 import (
-	"encoding/json"
-	"errors"
 	"log"
-	"net/http"
 	"os"
 	"os/signal"
-	"strconv"
 
 	"github.com/bwmarrin/discordgo"
 )
 
-type ServerStatus struct {
-	Host       string `json:"host"`
-	Port       int    `json:"port"`
-	Name       string `json:"name"`
-	MapName    string `json:"map_name"`
-	NumPlayers int    `json:"num_players"`
-	MaxPlayers int    `json:"max_players"`
-	Players    []struct {
-		Name string `json:"name"`
-		ID   string `json:"id"`
-	} `json:"players"`
-	QueryType string `json:"query_type"`
-}
-
-func GetServerStatus(game, ip string, port int64) (*ServerStatus, error) {
-	resp, err := http.Get("https://api.neuralnexus.dev/api/v1/game-server-status/" + game + "?host=" + ip + "&port=" + strconv.FormatInt(port, 10))
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		var body map[string]any
-		json.NewDecoder(resp.Body).Decode(&body)
-		log.Printf("Error fetching server status: %v", body)
-		return nil, errors.New("cannot fetch server status")
-	}
-
-	var status ServerStatus
-	err = json.NewDecoder(resp.Body).Decode(&status)
-	if err != nil {
-		return nil, err
-	}
-	return &status, nil
-}
+const (
+	EMBED_GREEN  = 0x65bf65
+	EMBED_YELLOW = 0xe6d132
+	EMBED_RED    = 0xbf0f0f
+)
 
 var (
 	GUILD_ID        = os.Getenv("GUILD_ID")
 	BOT_TOKEN       = os.Getenv("BOT_TOKEN")
 	REMOVE_COMMANDS = os.Getenv("REMOVE_COMMANDS") == "true"
+	NEURALNEXUS_API = "https://api.neuralnexus.dev/api/v1" // os.Getenv("NEURALNEXUS_API")
 )
-
-type CommandHandler func(s *discordgo.Session, i *discordgo.InteractionCreate)
 
 var (
 	dmPermission = true
-	minInt       = 1.0
 	// defaultMemberPermissions int64 = discordgo.PermissionAllText
-
 	commands = []*discordgo.ApplicationCommand{
-		{
-			Name:                     "status",
-			NameLocalizations:        &map[discordgo.Locale]string{},
-			Description:              "Check a game server's status",
-			DescriptionLocalizations: &map[discordgo.Locale]string{},
-			Type:                     discordgo.ChatApplicationCommand,
-			DMPermission:             &dmPermission,
-			Options: []*discordgo.ApplicationCommandOption{
-				{
-					Name:                     "game",
-					NameLocalizations:        map[discordgo.Locale]string{},
-					Description:              "Game to check status for",
-					DescriptionLocalizations: map[discordgo.Locale]string{},
-					Type:                     discordgo.ApplicationCommandOptionString,
-					Required:                 true,
-				},
-				{
-					Name:                     "host",
-					NameLocalizations:        map[discordgo.Locale]string{},
-					Description:              "The server's IP address or hostname",
-					DescriptionLocalizations: map[discordgo.Locale]string{},
-					Type:                     discordgo.ApplicationCommandOptionString,
-					Required:                 true,
-				},
-				{
-					Name:                     "port",
-					NameLocalizations:        map[discordgo.Locale]string{},
-					Description:              "The server's port number",
-					DescriptionLocalizations: map[discordgo.Locale]string{},
-					Type:                     discordgo.ApplicationCommandOptionInteger,
-					MinValue:                 &minInt,
-					MaxValue:                 65535,
-					Required:                 true,
-				},
-			},
-		},
+		GSSCommand,
 	}
-
-	commandHandlers = map[string]CommandHandler{
-		"status": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-			options := i.ApplicationCommandData().Options
-			content := ""
-			game := options[0].StringValue()
-			host := options[1].StringValue()
-			port := options[2].IntValue()
-
-			status, err := GetServerStatus(game, host, port)
-			if err != nil {
-				log.Printf("Error fetching server status: %v", err)
-				content = "An error occurred while fetching the server status"
-			} else {
-				content = "```"
-				content += "Server: " + status.Host + ":" + strconv.Itoa(status.Port) + "\n"
-				content += "Name: " + status.Name + "\n"
-				content += "Map: " + status.MapName + "\n"
-				content += "Players: " + strconv.Itoa(status.NumPlayers) + "/" + strconv.Itoa(status.MaxPlayers) + "\n"
-				content += "```"
-			}
-
-			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
-				Type: discordgo.InteractionResponseChannelMessageWithSource,
-				Data: &discordgo.InteractionResponseData{
-					Content: content,
-				},
-			})
-		},
+	commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
+		GSSCommand.Name: GSSCommandHandler,
 	}
 )
 
