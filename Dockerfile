@@ -13,7 +13,6 @@ FROM alpine:edge AS release-stage
 
 WORKDIR /app
 
-COPY ./public ./public
 COPY --from=build /app/discordbot .
 
 CMD ["/app/discordbot"]
