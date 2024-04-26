@@ -27,9 +27,11 @@ type Bot struct {
 
 func NewBot() *Bot {
 	bot := &Bot{
-		GuildID:        GUILD_ID,
-		BotToken:       BOT_TOKEN,
-		RemoveCommands: REMOVE_COMMANDS,
+		GuildID:         GUILD_ID,
+		BotToken:        BOT_TOKEN,
+		RemoveCommands:  REMOVE_COMMANDS,
+		commands:        []*discordgo.ApplicationCommand{},
+		commandHandlers: map[string]CommandHandler{},
 	}
 	s, err := discordgo.New("Bot " + BOT_TOKEN)
 	if err != nil {
