@@ -60,7 +60,6 @@ func (b *Bot) Start() {
 	defer b.s.Close()
 
 	createdCommands, err := b.s.ApplicationCommandBulkOverwrite(b.s.State.User.ID, GUILD_ID, b.commands)
-
 	if err != nil {
 		log.Fatalf("Cannot register commands: %v", err)
 	}

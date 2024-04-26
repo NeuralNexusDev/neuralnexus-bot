@@ -38,7 +38,7 @@ func GetServerStatus(game, ip string, port int64) (*ServerStatus, error) {
 		var body map[string]any
 		json.NewDecoder(resp.Body).Decode(&body)
 		log.Println("Error fetching server status:\n\t", body)
-		return nil, errors.New("cannot fetch server status")
+		return nil, errors.New(body["detail"].(string))
 	}
 
 	var status ServerStatus
@@ -89,7 +89,7 @@ var GSSCommand = &discordgo.ApplicationCommand{
 }
 
 // GSSCommandHandler game server status command handler
-func GSSCommandHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
+func GSSHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	options := i.ApplicationCommandData().Options
 	game := options[0].StringValue()
 	host := options[1].StringValue()
