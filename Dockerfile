@@ -1,23 +1,19 @@
-FROM node:18
+FROM golang:1.22.1-alpine AS build
 
 WORKDIR /app
 
-COPY package.json ./
+COPY go.mod go.sum ./
+RUN go mod download
 
-COPY package-lock.json ./
+COPY . .
 
-RUN npm ci
+RUN CGO_ENABLED=0 GOOS=linux go build -o discordbot .
 
-COPY ./localizations ./localizations
+FROM alpine:edge AS release-stage
 
-COPY ./lib ./lib
+WORKDIR /app
 
-COPY index.ts ./
+COPY ./public ./public
+COPY --from=build /app/discordbot .
 
-COPY tsconfig.json ./
-
-COPY tsconfig.build.json ./
-
-RUN /app/node_modules/typescript/bin/tsc -p /app/tsconfig.build.json
-
-CMD ["node", "./dist/index.js"]
+CMD ["/app/discordbot"]
