@@ -5,30 +5,22 @@ import (
 	"os"
 	"os/signal"
 
+	"github.com/NeuralNexusDev/neuralnexus-discord-bot/modules/gss"
 	"github.com/bwmarrin/discordgo"
-)
-
-const (
-	EMBED_GREEN  = 0x65bf65
-	EMBED_YELLOW = 0xe6d132
-	EMBED_RED    = 0xbf0f0f
 )
 
 var (
 	GUILD_ID        = os.Getenv("GUILD_ID")
 	BOT_TOKEN       = os.Getenv("BOT_TOKEN")
 	REMOVE_COMMANDS = os.Getenv("REMOVE_COMMANDS") == "true"
-	NEURALNEXUS_API = "https://api.neuralnexus.dev/api/v1" // os.Getenv("NEURALNEXUS_API")
 )
 
 var (
-	dmPermission = true
-	// defaultMemberPermissions int64 = discordgo.PermissionAllText
 	commands = []*discordgo.ApplicationCommand{
-		GSSCommand,
+		gss.GSSCommand,
 	}
 	commandHandlers = map[string]func(s *discordgo.Session, i *discordgo.InteractionCreate){
-		GSSCommand.Name: GSSCommandHandler,
+		gss.GSSCommand.Name: gss.GSSCommandHandler,
 	}
 )
 

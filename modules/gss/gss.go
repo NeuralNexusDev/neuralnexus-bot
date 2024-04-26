@@ -1,4 +1,4 @@
-package main
+package gss
 
 import (
 	"encoding/json"
@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
+	g "github.com/NeuralNexusDev/neuralnexus-discord-bot/modules/globals"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -27,7 +28,7 @@ type ServerStatus struct {
 
 // GetServerStatus fetches the server status from the NeuralNexus API
 func GetServerStatus(game, ip string, port int64) (*ServerStatus, error) {
-	resp, err := http.Get(NEURALNEXUS_API + "/game-server-status/" + game + "?host=" + ip + "&port=" + strconv.FormatInt(port, 10))
+	resp, err := http.Get(g.NEURALNEXUS_API + "/game-server-status/" + game + "?host=" + ip + "&port=" + strconv.FormatInt(port, 10))
 	if err != nil {
 		return nil, err
 	}
@@ -48,9 +49,11 @@ func GetServerStatus(game, ip string, port int64) (*ServerStatus, error) {
 	return &status, nil
 }
 
+var dmPermission = true
+
 // GSSCommand game server status command
 var GSSCommand = &discordgo.ApplicationCommand{
-	Name:                     "status",
+	Name:                     "gstatus",
 	NameLocalizations:        &map[discordgo.Locale]string{},
 	Description:              "Check a game server's status",
 	DescriptionLocalizations: &map[discordgo.Locale]string{},
@@ -94,15 +97,16 @@ func GSSCommandHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 
 	title := ""
 	description := ""
-	color := EMBED_GREEN
+	color := g.EMBED_GREEN
 
 	status, err := GetServerStatus(game, host, port)
 	if err != nil {
 		log.Printf("Error fetching server status: %v", err)
 		title = "Error:"
 		description = "Whoops, something went wrong,\n"
-		description += "couldn't reach " + host + ":" + strconv.FormatInt(port, 10) + ".\t¯\\\\_(\"/)\\_/¯"
-		color = EMBED_RED
+		description += "couldn't reach " + host + ":" + strconv.FormatInt(port, 10) + ".\t¯\\\\_(\"/)\\_/¯" + "\n"
+		description += err.Error()
+		color = g.EMBED_RED
 	} else {
 		title = status.Host + ":" + strconv.Itoa(status.Port)
 		description += "Name: " + status.Name + "\n"
