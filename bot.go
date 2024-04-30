@@ -14,24 +14,28 @@ var (
 	REMOVE_COMMANDS = os.Getenv("REMOVE_COMMANDS") == "true"
 )
 
-type CommandHandler func(s *discordgo.Session, i *discordgo.InteractionCreate)
+type InteractionHandler func(s *discordgo.Session, i *discordgo.InteractionCreate)
 
 type Bot struct {
-	GuildID         string
-	BotToken        string
-	RemoveCommands  bool
-	s               *discordgo.Session
-	commands        []*discordgo.ApplicationCommand
-	commandHandlers map[string]CommandHandler
+	GuildID           string
+	BotToken          string
+	RemoveCommands    bool
+	s                 *discordgo.Session
+	commands          []*discordgo.ApplicationCommand
+	commandHandlers   map[string]InteractionHandler
+	components        []any
+	componentHandlers map[string]InteractionHandler
 }
 
 func NewBot() *Bot {
 	bot := &Bot{
-		GuildID:         GUILD_ID,
-		BotToken:        BOT_TOKEN,
-		RemoveCommands:  REMOVE_COMMANDS,
-		commands:        []*discordgo.ApplicationCommand{},
-		commandHandlers: map[string]CommandHandler{},
+		GuildID:           GUILD_ID,
+		BotToken:          BOT_TOKEN,
+		RemoveCommands:    REMOVE_COMMANDS,
+		commands:          []*discordgo.ApplicationCommand{},
+		commandHandlers:   map[string]InteractionHandler{},
+		components:        []any{},
+		componentHandlers: map[string]InteractionHandler{},
 	}
 	s, err := discordgo.New("Bot " + BOT_TOKEN)
 	if err != nil {
@@ -41,16 +45,28 @@ func NewBot() *Bot {
 	return bot
 }
 
-func (b *Bot) AddCommandHandler(cmd *discordgo.ApplicationCommand, h CommandHandler) {
+func (b *Bot) AddCommandHandler(cmd *discordgo.ApplicationCommand, h InteractionHandler) {
 	b.commands = append(b.commands, cmd)
 	b.commandHandlers[cmd.Name] = h
+}
+
+func (b *Bot) AddButtonHandler(id string, c *discordgo.Button, h InteractionHandler) {
+	b.components = append(b.components, c)
+	b.componentHandlers[id] = h
 }
 
 func (b *Bot) Start() {
 	b.s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) { log.Println("Bot is up!") })
 	b.s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
-		if h, ok := b.commandHandlers[i.ApplicationCommandData().Name]; ok {
-			h(s, i)
+		switch i.Type {
+		case discordgo.InteractionApplicationCommand:
+			if h, ok := b.commandHandlers[i.ApplicationCommandData().Name]; ok {
+				h(s, i)
+			}
+		case discordgo.InteractionMessageComponent:
+			if h, ok := b.componentHandlers[i.MessageComponentData().CustomID]; ok {
+				h(s, i)
+			}
 		}
 	})
 	err := b.s.Open()

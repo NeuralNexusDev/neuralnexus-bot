@@ -1,6 +1,7 @@
 package api
 
 import (
+	"bytes"
 	"encoding/json"
 	"errors"
 	"net/http"
@@ -11,13 +12,21 @@ import (
 
 // APIRequest request helper method for the NeuralNexus API
 func APIRequest(method, endpoint string, body interface{}) (*http.Response, error) {
-	req, err := http.NewRequest(method, g.NEURALNEXUS_API+endpoint, nil)
+	buff := new(bytes.Buffer)
+	if body != nil {
+		b, err := json.Marshal(body)
+		if err != nil {
+			return nil, err
+		}
+		buff = bytes.NewBuffer(b)
+	}
+
+	req, err := http.NewRequest(method, g.NEURALNEXUS_API+endpoint, buff)
 	if err != nil {
 		return nil, err
 	}
 	req.Header.Set("Authorization", "Bearer "+g.NEURALNEXUS_API_KEY)
 	req.Header.Set("Content-Type", "application/json")
-	json.NewDecoder(req.Body).Decode(body)
 
 	client := &http.Client{}
 	resp, err := client.Do(req)
@@ -55,7 +64,7 @@ func (u *User) HasPermission(permission string) bool {
 
 // GetUser fetches the user from the NeuralNexus API
 func GetUser(userID string) (*User, error) {
-	resp, err := APIRequest("GET", "/user/"+userID, nil)
+	resp, err := APIRequest("GET", "/users/"+userID, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -75,7 +84,7 @@ func GetUser(userID string) (*User, error) {
 
 // GetUserFromPlatform fetches the user from the NeuralNexus API
 func GetUserFromPlatform(platform, platformID string) (*User, error) {
-	resp, err := APIRequest("GET", "/user/"+platform+"/"+platformID, nil)
+	resp, err := APIRequest("GET", "/users/"+platform+"/"+platformID, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -95,7 +104,7 @@ func GetUserFromPlatform(platform, platformID string) (*User, error) {
 
 // GetUserPermissions fetches the user permissions from the NeuralNexus API
 func GetUserPermissions(userID string) ([]string, error) {
-	resp, err := APIRequest("GET", "/user/"+userID+"/permissions", nil)
+	resp, err := APIRequest("GET", "/users/"+userID+"/permissions", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -115,7 +124,7 @@ func GetUserPermissions(userID string) ([]string, error) {
 
 // UpdateUser updates the user in the NeuralNexus API
 func UpdateUser(userID string, user *User) (*User, error) {
-	resp, err := APIRequest("PUT", "/user/"+userID, user)
+	resp, err := APIRequest("PUT", "/users/"+userID, user)
 	if err != nil {
 		return nil, err
 	}
@@ -134,8 +143,8 @@ func UpdateUser(userID string, user *User) (*User, error) {
 }
 
 // UpdateUserPlatform updates the user in the NeuralNexus API
-func UpdateUserPlatform(platform, platformID string, user *User) (*User, error) {
-	resp, err := APIRequest("PUT", "/user/"+platform+"/"+platformID, user)
+func UpdateUserPlatform(platform, platformID string, data interface{}) (*User, error) {
+	resp, err := APIRequest("PUT", "/users/"+platform+"/"+platformID, data)
 	if err != nil {
 		return nil, err
 	}
