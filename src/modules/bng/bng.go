@@ -33,13 +33,6 @@ var BeeNameSuggestionNextButton = discordgo.Button{
 	CustomID: "beename_suggestion_next",
 }
 
-// BeeNameButtonActionRow bee name button action row
-func BeeNameButtonActionRow(buttons ...discordgo.MessageComponent) discordgo.ActionsRow {
-	return discordgo.ActionsRow{
-		Components: buttons,
-	}
-}
-
 // BeeNameComponentHandlers bee name component handlers
 var BeeNameComponentHandlers = map[string]bot.InteractionHandler{
 	"beename_suggestion_accept": func(s *discordgo.Session, i *discordgo.InteractionCreate) {
@@ -57,8 +50,9 @@ var BeeNameComponentHandlers = map[string]bot.InteractionHandler{
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
+				Flags:      discordgo.MessageFlagsEphemeral,
 				Embeds:     []*discordgo.MessageEmbed{embed},
-				Components: []discordgo.MessageComponent{BeeNameButtonActionRow(BeeNameSuggestionNextButton)},
+				Components: []discordgo.MessageComponent{bot.ComponentActionRow(BeeNameSuggestionNextButton)},
 			},
 		})
 	},
@@ -77,8 +71,9 @@ var BeeNameComponentHandlers = map[string]bot.InteractionHandler{
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
+				Flags:      discordgo.MessageFlagsEphemeral,
 				Embeds:     []*discordgo.MessageEmbed{embed},
-				Components: []discordgo.MessageComponent{BeeNameButtonActionRow(BeeNameSuggestionNextButton)},
+				Components: []discordgo.MessageComponent{bot.ComponentActionRow(BeeNameSuggestionNextButton)},
 			},
 		})
 	},
@@ -89,6 +84,16 @@ var BeeNameComponentHandlers = map[string]bot.InteractionHandler{
 		suggestions, err := api.GetBeeNameSuggestions()
 		if err != nil {
 			embed = bot.ErrorEmbed(err)
+		} else if len(suggestions.Suggestions) == 0 {
+			embed = bot.SimpleEmbed("Bee Name Suggestions", "No suggestions available", bot.EMBED_YELLOW)
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseUpdateMessage,
+				Data: &discordgo.InteractionResponseData{
+					Flags:      discordgo.MessageFlagsEphemeral,
+					Embeds:     []*discordgo.MessageEmbed{embed},
+					Components: []discordgo.MessageComponent{bot.ComponentActionRow(BeeNameSuggestionNextButton)},
+				},
+			})
 		} else {
 			embed = bot.SimpleEmbed("Bee Name Suggestions", suggestions.Suggestions[0], bot.EMBED_GREEN)
 		}
@@ -96,8 +101,9 @@ var BeeNameComponentHandlers = map[string]bot.InteractionHandler{
 		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseUpdateMessage,
 			Data: &discordgo.InteractionResponseData{
+				Flags:      discordgo.MessageFlagsEphemeral,
 				Embeds:     []*discordgo.MessageEmbed{embed},
-				Components: []discordgo.MessageComponent{BeeNameButtonActionRow(BeeNameSuggestionAcceptButton, BeeNameSuggestionRejectButton, BeeNameSuggestionNextButton)},
+				Components: []discordgo.MessageComponent{bot.ComponentActionRow(BeeNameSuggestionNextButton, BeeNameSuggestionAcceptButton, BeeNameSuggestionRejectButton)},
 			},
 		})
 	},
@@ -227,22 +233,31 @@ func BeeNameCommandHandler(s *discordgo.Session, i *discordgo.InteractionCreate)
 				break
 			} else if len(suggestions.Suggestions) == 0 {
 				embed = bot.SimpleEmbed("Bee Name Suggestions", "No suggestions available", bot.EMBED_GREEN)
-				break
+				s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+					Type: discordgo.InteractionResponseChannelMessageWithSource,
+					Data: &discordgo.InteractionResponseData{
+						Flags:      discordgo.MessageFlagsEphemeral,
+						Embeds:     []*discordgo.MessageEmbed{embed},
+						Components: []discordgo.MessageComponent{bot.ComponentActionRow(BeeNameSuggestionNextButton)},
+					},
+				})
+				return
 			}
 			embed = bot.SimpleEmbed("Bee Name Suggestions", suggestions.Suggestions[0], bot.EMBED_GREEN)
 
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
+					Flags:  discordgo.MessageFlagsEphemeral,
 					Embeds: []*discordgo.MessageEmbed{embed},
 					Components: []discordgo.MessageComponent{
-						BeeNameButtonActionRow(BeeNameSuggestionAcceptButton, BeeNameSuggestionRejectButton, BeeNameSuggestionNextButton),
+						bot.ComponentActionRow(BeeNameSuggestionNextButton, BeeNameSuggestionAcceptButton, BeeNameSuggestionRejectButton),
 					},
 				},
 			})
 			return
 		case "submit":
-			err := api.SubmitBeeNameSuggestion(options[0].Options[0].StringValue())
+			err := api.SubmitBeeNameSuggestion(options[0].Options[0].Options[0].StringValue())
 			embed = bot.ErrorSuccessEmbed(err, "Bee name suggestion submitted")
 		}
 	}

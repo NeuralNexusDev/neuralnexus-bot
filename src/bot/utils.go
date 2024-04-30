@@ -30,13 +30,13 @@ func ErrorSuccessEmbed(err error, success string) *discordgo.MessageEmbed {
 		return &discordgo.MessageEmbed{
 			Title:       "Error",
 			Description: err.Error(),
-			Color:       EMBED_GREEN,
+			Color:       EMBED_RED,
 		}
 	}
 	return &discordgo.MessageEmbed{
 		Title:       "Success",
 		Description: success,
-		Color:       EMBED_RED,
+		Color:       EMBED_GREEN,
 	}
 }
 
@@ -46,5 +46,12 @@ func ErrorEmbed(err error) *discordgo.MessageEmbed {
 		Title:       "Error",
 		Description: err.Error(),
 		Color:       EMBED_RED,
+	}
+}
+
+// ComponentActionRow component action row
+func ComponentActionRow(components ...discordgo.MessageComponent) discordgo.ActionsRow {
+	return discordgo.ActionsRow{
+		Components: components,
 	}
 }

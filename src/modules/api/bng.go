@@ -118,7 +118,7 @@ func RejectBeeNameSuggestion(name string) error {
 		return err
 	}
 
-	if resp.StatusCode != http.StatusOK {
+	if resp.StatusCode != http.StatusNoContent {
 		return errors.New("error rejecting bee name suggestion")
 	}
 	return nil
