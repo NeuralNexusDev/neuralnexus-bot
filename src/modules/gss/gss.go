@@ -9,8 +9,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-var dmPermission = true
-
 // GSSCommand game server status command
 var GSSCommand = &discordgo.ApplicationCommand{
 	Name:                     "gstatus",
@@ -18,7 +16,7 @@ var GSSCommand = &discordgo.ApplicationCommand{
 	Description:              "Check a game server's status",
 	DescriptionLocalizations: &map[discordgo.Locale]string{},
 	Type:                     discordgo.ChatApplicationCommand,
-	DMPermission:             &dmPermission,
+	DMPermission:             &bot.DMPermissionTrue,
 	Options: []*discordgo.ApplicationCommandOption{
 		{
 			Name:                     "game",

@@ -39,8 +39,6 @@ var BeeNameComponentHandlers = map[string]bot.InteractionHandler{
 	"beename_suggestion_next":   func(s *discordgo.Session, i *discordgo.InteractionCreate) {},
 }
 
-var dmPermission = true
-
 // BeeNameCommand bee name command
 var BeeNameCommand = &discordgo.ApplicationCommand{
 	Name:                     "beename",
@@ -48,7 +46,7 @@ var BeeNameCommand = &discordgo.ApplicationCommand{
 	Description:              "Generate a bee name",
 	DescriptionLocalizations: &map[discordgo.Locale]string{},
 	Type:                     discordgo.ChatApplicationCommand,
-	DMPermission:             &dmPermission,
+	DMPermission:             &bot.DMPermissionTrue,
 	Options: []*discordgo.ApplicationCommandOption{
 		{
 			Name:                     "get",

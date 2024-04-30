@@ -10,6 +10,11 @@ const (
 	EMBED_RED    = 0xbf0f0f
 )
 
+var (
+	DMPermissionTrue  = true
+	DMPermissionFalse = false
+)
+
 // SimpleEmbed returns a new embed
 func SimpleEmbed(title, description string, color int) *discordgo.MessageEmbed {
 	return &discordgo.MessageEmbed{

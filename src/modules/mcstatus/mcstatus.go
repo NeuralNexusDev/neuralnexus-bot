@@ -9,8 +9,6 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
-var dmPermission = true
-
 // MCStatusCommand minecraft server status command
 var MCStatusCommand = &discordgo.ApplicationCommand{
 	Name:                     "mcstatus",
@@ -18,7 +16,7 @@ var MCStatusCommand = &discordgo.ApplicationCommand{
 	Description:              "Check a Minecraft server's status",
 	DescriptionLocalizations: &map[discordgo.Locale]string{},
 	Type:                     discordgo.ChatApplicationCommand,
-	DMPermission:             &dmPermission,
+	DMPermission:             &bot.DMPermissionTrue,
 	Options: []*discordgo.ApplicationCommandOption{
 		{
 			Name:        "host",
