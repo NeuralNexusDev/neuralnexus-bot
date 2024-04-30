@@ -8,7 +8,7 @@ import (
 	"strconv"
 	"strings"
 
-	g "github.com/NeuralNexusDev/neuralnexus-discord-bot/modules/globals"
+	g "github.com/NeuralNexusDev/neuralnexus-discord-bot/src/modules/globals"
 	"github.com/bwmarrin/discordgo"
 )
 

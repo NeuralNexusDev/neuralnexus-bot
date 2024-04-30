@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"time"
 
-	g "github.com/NeuralNexusDev/neuralnexus-discord-bot/modules/globals"
+	g "github.com/NeuralNexusDev/neuralnexus-discord-bot/src/modules/globals"
 )
 
 // APIRequest request helper method for the NeuralNexus API

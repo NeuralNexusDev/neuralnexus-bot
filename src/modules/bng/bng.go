@@ -5,8 +5,9 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/NeuralNexusDev/neuralnexus-discord-bot/modules/api"
-	g "github.com/NeuralNexusDev/neuralnexus-discord-bot/modules/globals"
+	"github.com/NeuralNexusDev/neuralnexus-discord-bot/src/bot"
+	"github.com/NeuralNexusDev/neuralnexus-discord-bot/src/modules/api"
+	g "github.com/NeuralNexusDev/neuralnexus-discord-bot/src/modules/globals"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -55,36 +56,35 @@ func UploadBeeName(name string) error {
 }
 
 // GetSuggestionsComponent get suggestions component
-func GetSuggestionsComponent() *discordgo.ActionsRow {
-	return &discordgo.ActionsRow{
-		Components: []discordgo.MessageComponent{
-			&discordgo.Button{
-				Label:    "Accept",
-				Style:    discordgo.SuccessButton,
-				Disabled: false,
-				CustomID: "beename_suggestion_accept",
-			},
-			&discordgo.Button{
-				Label:    "Reject",
-				Style:    discordgo.DangerButton,
-				Disabled: false,
-				CustomID: "beename_suggestion_reject",
-			},
-			&discordgo.Button{
-				Label:    "Next",
-				Style:    discordgo.SecondaryButton,
-				Disabled: false,
-				CustomID: "beename_suggestion_get_next",
-			},
+func GetSuggestionsComponents() []discordgo.MessageComponent {
+	return []discordgo.MessageComponent{
+		&discordgo.Button{
+			Label:    "Accept",
+			Style:    discordgo.SuccessButton,
+			Disabled: false,
+			CustomID: "beename_suggestion_accept",
+		},
+		&discordgo.Button{
+			Label:    "Reject",
+			Style:    discordgo.DangerButton,
+			Disabled: false,
+			CustomID: "beename_suggestion_reject",
+		},
+		&discordgo.Button{
+			Label:    "Next",
+			Style:    discordgo.SecondaryButton,
+			Disabled: false,
+			CustomID: "beename_suggestion_next",
 		},
 	}
 }
 
-// SuggestionAcceptHandler suggestion accept handler
-
-// SuggestionRejectHandler suggestion reject handler
-
-// SuggestionGetNextHandler suggestion get next handler
+// BeeNameComponentHandlers bee name component handlers
+var BeeNameComponentHandlers = map[string]bot.InteractionHandler{
+	"beename_suggestion_accept": func(s *discordgo.Session, i *discordgo.InteractionCreate) {},
+	"beename_suggestion_reject": func(s *discordgo.Session, i *discordgo.InteractionCreate) {},
+	"beename_suggestion_next":   func(s *discordgo.Session, i *discordgo.InteractionCreate) {},
+}
 
 var dmPermission = true
 
@@ -160,9 +160,7 @@ var BeeNameCommand = &discordgo.ApplicationCommand{
 // BeeNameCommandHandler bee name command handler
 func BeeNameCommandHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	embed := &discordgo.MessageEmbed{
-		Title:       "",
-		Description: "",
-		Color:       g.EMBED_GREEN,
+		Color: g.EMBED_GREEN,
 	}
 
 	options := i.ApplicationCommandData().Options
@@ -204,6 +202,20 @@ func BeeNameCommandHandler(s *discordgo.Session, i *discordgo.InteractionCreate)
 		} else {
 			embed.Title = "Success"
 			embed.Description = "Bee name uploaded"
+		}
+	case "suggestion":
+		switch options[0].Options[0].Name {
+		case "get":
+			embed.Title = "Bee Name Suggestions"
+			embed.Description = "Coming soon"
+			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+				Type: discordgo.InteractionResponseChannelMessageWithSource,
+				Data: &discordgo.InteractionResponseData{
+					Embeds:     []*discordgo.MessageEmbed{embed},
+					Components: GetSuggestionsComponents(),
+				},
+			})
+			return
 		}
 	}
 

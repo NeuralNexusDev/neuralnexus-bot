@@ -1,4 +1,4 @@
-package main
+package bot
 
 import (
 	"log"
@@ -23,7 +23,6 @@ type Bot struct {
 	s                 *discordgo.Session
 	commands          []*discordgo.ApplicationCommand
 	commandHandlers   map[string]InteractionHandler
-	components        []any
 	componentHandlers map[string]InteractionHandler
 }
 
@@ -34,7 +33,6 @@ func NewBot() *Bot {
 		RemoveCommands:    REMOVE_COMMANDS,
 		commands:          []*discordgo.ApplicationCommand{},
 		commandHandlers:   map[string]InteractionHandler{},
-		components:        []any{},
 		componentHandlers: map[string]InteractionHandler{},
 	}
 	s, err := discordgo.New("Bot " + BOT_TOKEN)
@@ -50,9 +48,14 @@ func (b *Bot) AddCommandHandler(cmd *discordgo.ApplicationCommand, h Interaction
 	b.commandHandlers[cmd.Name] = h
 }
 
-func (b *Bot) AddButtonHandler(id string, c *discordgo.Button, h InteractionHandler) {
-	b.components = append(b.components, c)
+func (b *Bot) AddComponentHandler(id string, h InteractionHandler) {
 	b.componentHandlers[id] = h
+}
+
+func (b *Bot) AddComponentHandlers(h map[string]InteractionHandler) {
+	for id, handler := range h {
+		b.AddComponentHandler(id, handler)
+	}
 }
 
 func (b *Bot) Start() {
