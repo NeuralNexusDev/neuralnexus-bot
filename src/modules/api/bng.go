@@ -65,7 +65,7 @@ func DeleteBeeName(name string) error {
 
 // GetBeeNameSuggestions fetches bee name suggestions from the NeuralNexus API
 func GetBeeNameSuggestions() (*BeeNameSuggestions, error) {
-	resp, err := APIRequest("GET", "/bee-name-generator/suggestions/1", nil)
+	resp, err := APIRequest("GET", "/bee-name-generator/suggestion/1", nil)
 	if err != nil {
 		return nil, err
 	}
@@ -85,7 +85,7 @@ func GetBeeNameSuggestions() (*BeeNameSuggestions, error) {
 
 // SubmitBeeNameSuggestion submits a bee name suggestion to the NeuralNexus API
 func SubmitBeeNameSuggestion(name string) error {
-	resp, err := APIRequest("POST", "/bee-name-generator/suggestions/"+name, nil)
+	resp, err := APIRequest("POST", "/bee-name-generator/suggestion/"+name, nil)
 	if err != nil {
 		return err
 	}
@@ -99,7 +99,7 @@ func SubmitBeeNameSuggestion(name string) error {
 
 // AcceptBeeNameSuggestion accepts a bee name suggestion on the NeuralNexus API
 func AcceptBeeNameSuggestion(name string) error {
-	resp, err := APIRequest("PUT", "/bee-name-generator/suggestions/"+name, nil)
+	resp, err := APIRequest("PUT", "/bee-name-generator/suggestion/"+name, nil)
 	if err != nil {
 		return err
 	}
@@ -113,7 +113,7 @@ func AcceptBeeNameSuggestion(name string) error {
 
 // RejectBeeNameSuggestion rejects a bee name suggestion on the NeuralNexus API
 func RejectBeeNameSuggestion(name string) error {
-	resp, err := APIRequest("DELETE", "/bee-name-generator/suggestions/"+name, nil)
+	resp, err := APIRequest("DELETE", "/bee-name-generator/suggestion/"+name, nil)
 	if err != nil {
 		return err
 	}

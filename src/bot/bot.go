@@ -44,11 +44,15 @@ func NewBot() *Bot {
 }
 
 func (b *Bot) AddCommandHandler(cmd *discordgo.ApplicationCommand, h InteractionHandler) {
+	log.Printf("Adding command handler for %q", cmd.Name)
+
 	b.commands = append(b.commands, cmd)
 	b.commandHandlers[cmd.Name] = h
 }
 
 func (b *Bot) AddComponentHandler(id string, h InteractionHandler) {
+	log.Printf("Adding component handler for %q", id)
+
 	b.componentHandlers[id] = h
 }
 
@@ -61,12 +65,18 @@ func (b *Bot) AddComponentHandlers(h map[string]InteractionHandler) {
 func (b *Bot) Start() {
 	b.s.AddHandler(func(s *discordgo.Session, r *discordgo.Ready) { log.Println("Bot is up!") })
 	b.s.AddHandler(func(s *discordgo.Session, i *discordgo.InteractionCreate) {
+		log.Printf("Interaction received: %v", i.Type)
+
 		switch i.Type {
 		case discordgo.InteractionApplicationCommand:
+			log.Printf("Command: %v", i.ApplicationCommandData().Name)
+
 			if h, ok := b.commandHandlers[i.ApplicationCommandData().Name]; ok {
 				h(s, i)
 			}
 		case discordgo.InteractionMessageComponent:
+			log.Printf("ComponentID: %v", i.MessageComponentData().CustomID)
+
 			if h, ok := b.componentHandlers[i.MessageComponentData().CustomID]; ok {
 				h(s, i)
 			}
