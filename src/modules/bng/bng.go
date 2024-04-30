@@ -1,59 +1,11 @@
 package bng
 
 import (
-	"encoding/json"
-	"errors"
-	"net/http"
-
 	"github.com/NeuralNexusDev/neuralnexus-discord-bot/src/bot"
 	"github.com/NeuralNexusDev/neuralnexus-discord-bot/src/modules/api"
 	g "github.com/NeuralNexusDev/neuralnexus-discord-bot/src/modules/globals"
 	"github.com/bwmarrin/discordgo"
 )
-
-// BeeName bee name response
-type BeeName struct {
-	Name string `json:"name"`
-}
-
-// BeeNameSuggestions bee name suggestions response
-type BeeNameSuggestions struct {
-	Suggestions []string `json:"suggestions"`
-}
-
-// GetBeeName fetches a bee name from the NeuralNexus API
-func GetBeeName() (*BeeName, error) {
-	resp, err := api.APIRequest("GET", "/bee-name-generator/name", nil)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return nil, errors.New("error fetching bee name")
-	}
-
-	var name BeeName
-	err = json.NewDecoder(resp.Body).Decode(&name)
-	if err != nil {
-		return nil, err
-	}
-	return &name, nil
-}
-
-// UploadBeeName uploads a bee name to the NeuralNexus API
-func UploadBeeName(name string) error {
-	resp, err := api.APIRequest("POST", "/bee-name-generator/name/"+name, nil)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return errors.New("error uploading bee name")
-	}
-	return nil
-}
 
 // GetSuggestionsComponent get suggestions component
 func GetSuggestionsComponents() []discordgo.MessageComponent {
@@ -159,14 +111,11 @@ var BeeNameCommand = &discordgo.ApplicationCommand{
 
 // BeeNameCommandHandler bee name command handler
 func BeeNameCommandHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
-	embed := &discordgo.MessageEmbed{
-		Color: g.EMBED_GREEN,
-	}
-
+	embed := &discordgo.MessageEmbed{Color: g.EMBED_GREEN}
 	options := i.ApplicationCommandData().Options
 	switch options[0].Name {
 	case "get":
-		name, err := GetBeeName()
+		name, err := api.GetBeeName()
 		if err != nil {
 			embed.Title = "Error"
 			embed.Description = err.Error()
@@ -194,7 +143,7 @@ func BeeNameCommandHandler(s *discordgo.Session, i *discordgo.InteractionCreate)
 		}
 
 		name := options[0].Options[0].StringValue()
-		err = UploadBeeName(name)
+		err = api.UploadBeeName(name)
 		if err != nil {
 			embed.Title = "Error"
 			embed.Description = err.Error()
@@ -203,11 +152,47 @@ func BeeNameCommandHandler(s *discordgo.Session, i *discordgo.InteractionCreate)
 			embed.Title = "Success"
 			embed.Description = "Bee name uploaded"
 		}
+	case "delete":
+		user, err := api.GetUserFromPlatform("discord", i.Member.User.ID)
+		if err != nil {
+			user, err = api.UpdateUserPlatform("discord", i.Member.User.ID, i.Member.User)
+			if err != nil {
+				embed.Title = "Error"
+				embed.Description = err.Error()
+				embed.Color = g.EMBED_RED
+				break
+			}
+		}
+		if !user.HasPermission("beenamegenerator|*") {
+			embed.Title = "Error"
+			embed.Description = "You do not have permission to delete a bee name"
+			embed.Color = g.EMBED_RED
+			break
+		}
+
+		name := options[0].Options[0].StringValue()
+		err = api.DeleteBeeName(name)
+		if err != nil {
+			embed.Title = "Error"
+			embed.Description = err.Error()
+			embed.Color = g.EMBED_RED
+		} else {
+			embed.Title = "Success"
+			embed.Description = "Bee name deleted"
+		}
 	case "suggestion":
 		switch options[0].Options[0].Name {
 		case "get":
-			embed.Title = "Bee Name Suggestions"
-			embed.Description = "Coming soon"
+			suggestions, err := api.GetBeeNameSuggestions()
+			if err != nil {
+				embed.Title = "Error"
+				embed.Description = err.Error()
+				embed.Color = g.EMBED_RED
+				break
+			}
+			embed.Title = "Bee Name Suggestion:"
+			embed.Description = suggestions.Suggestions[0]
+
 			s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 				Type: discordgo.InteractionResponseChannelMessageWithSource,
 				Data: &discordgo.InteractionResponseData{
@@ -216,6 +201,16 @@ func BeeNameCommandHandler(s *discordgo.Session, i *discordgo.InteractionCreate)
 				},
 			})
 			return
+		case "submit":
+			err := api.SubmitBeeNameSuggestion(options[0].Options[0].StringValue())
+			if err != nil {
+				embed.Title = "Error"
+				embed.Description = err.Error()
+				embed.Color = g.EMBED_RED
+			} else {
+				embed.Title = "Success"
+				embed.Description = "Bee name suggestion submitted"
+			}
 		}
 	}
 
