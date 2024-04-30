@@ -1,57 +1,13 @@
 package mcstatus
 
 import (
-	"encoding/json"
-	"errors"
-	"log"
-	"net/http"
 	"strconv"
 	"strings"
 
-	g "github.com/NeuralNexusDev/neuralnexus-discord-bot/src/modules/globals"
+	"github.com/NeuralNexusDev/neuralnexus-discord-bot/src/bot"
+	"github.com/NeuralNexusDev/neuralnexus-discord-bot/src/modules/api"
 	"github.com/bwmarrin/discordgo"
 )
-
-// ServerStatus server status response
-type ServerStatus struct {
-	Host       string `json:"host"`
-	Port       int    `json:"port"`
-	Name       string `json:"name"`
-	Motd       string `json:"motd"`
-	Map        string `json:"map"`
-	MaxPlayers int    `json:"max_players"`
-	NumPlayers int    `json:"num_players"`
-	Players    []struct {
-		Name string `json:"name"`
-		ID   string `json:"uuid"`
-	} `json:"players"`
-	Version    string `json:"version"`
-	Favicon    string `json:"favicon"`
-	ServerType string `json:"server_type"`
-}
-
-// GetServerStatus fetches the server status from the NeuralNexus API
-func GetServerStatus(host string) (*ServerStatus, error) {
-	resp, err := http.Get(g.NEURALNEXUS_API + "/mcstatus/" + host)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		var body map[string]interface{}
-		json.NewDecoder(resp.Body).Decode(&body)
-		log.Println("Error fetching server status:\n\t", body)
-		return nil, errors.New(body["detail"].(string))
-	}
-
-	var status ServerStatus
-	err = json.NewDecoder(resp.Body).Decode(&status)
-	if err != nil {
-		return nil, err
-	}
-	return &status, nil
-}
 
 var dmPermission = true
 
@@ -88,12 +44,12 @@ func MCStatusHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		isBedrock = options[1].BoolValue()
 	}
 
-	var status *ServerStatus
+	var status *api.MCServerStatus
 	var err error
 	if isBedrock {
-		status, err = GetServerStatus(host + "?bedrock=true")
+		status, err = api.GetMCServerStatus(host + "?bedrock=true")
 	} else {
-		status, err = GetServerStatus(host)
+		status, err = api.GetMCServerStatus(host)
 	}
 	if err != nil {
 		description := "Whoops, something went wrong,\n"
@@ -106,7 +62,7 @@ func MCStatusHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 					{
 						Title:       "Error fetching server status",
 						Description: description,
-						Color:       g.EMBED_RED,
+						Color:       bot.EMBED_RED,
 					},
 				},
 			},
@@ -122,7 +78,7 @@ func MCStatusHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 					URL:         "https://neuralnexus.dev/mcstatus/" + host,
 					Title:       status.Host,
 					Description: strings.ReplaceAll(status.Motd, "\\n", "\n"),
-					Color:       g.EMBED_GREEN,
+					Color:       bot.EMBED_GREEN,
 					Thumbnail: &discordgo.MessageEmbedThumbnail{
 						URL: "https://api.neuralnexus.dev/api/v1/mcstatus/icon/" + host,
 					},
