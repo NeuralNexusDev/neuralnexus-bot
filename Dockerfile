@@ -1,4 +1,4 @@
-FROM golang:1.22.1-alpine AS build
+FROM golang:1.24.2-alpine AS build
 
 WORKDIR /app
 
@@ -7,12 +7,13 @@ RUN go mod download
 
 COPY . .
 
-RUN CGO_ENABLED=0 GOOS=linux go build -o discordbot .
+RUN CGO_ENABLED=0 GOOS=linux go build -o bot .
 
 FROM alpine:edge AS release-stage
 
 WORKDIR /app
 
-COPY --from=build /app/discordbot .
+COPY --from=build /app/bot .
 
-CMD ["/app/discordbot"]
+CMD ["/app/bot"]
+

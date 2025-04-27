@@ -7,7 +7,7 @@ import (
 	"net/http"
 	"strconv"
 
-	g "github.com/NeuralNexusDev/neuralnexus-discord-bot/src/modules/globals"
+	g "github.com/NeuralNexusDev/neuralnexus-discord-bot/src/globals"
 )
 
 // ServerStatus server status response

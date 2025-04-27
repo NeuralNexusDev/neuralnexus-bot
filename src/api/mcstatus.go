@@ -6,7 +6,7 @@ import (
 	"log"
 	"net/http"
 
-	g "github.com/NeuralNexusDev/neuralnexus-discord-bot/src/modules/globals"
+	g "github.com/NeuralNexusDev/neuralnexus-discord-bot/src/globals"
 )
 
 // MCServerStatus server status response

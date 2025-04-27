@@ -4,8 +4,8 @@ import (
 	"errors"
 	"log"
 
-	"github.com/NeuralNexusDev/neuralnexus-discord-bot/src/bot"
-	"github.com/NeuralNexusDev/neuralnexus-discord-bot/src/modules/api"
+	bot "github.com/NeuralNexusDev/neuralnexus-discord-bot/src/discord"
+	"github.com/NeuralNexusDev/neuralnexus-discord-bot/src/api"
 	"github.com/bwmarrin/discordgo"
 )
 
