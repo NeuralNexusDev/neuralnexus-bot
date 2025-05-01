@@ -8,6 +8,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+//goland:noinspection GoSnakeCaseUsage
 var (
 	GUILD_ID        = os.Getenv("GUILD_ID")
 	BOT_TOKEN       = os.Getenv("BOT_TOKEN")
@@ -86,7 +87,12 @@ func (b *Bot) Start() {
 	if err != nil {
 		log.Fatalf("Cannot open the session: %v", err)
 	}
-	defer b.s.Close()
+	defer func(s *discordgo.Session) {
+		err := s.Close()
+		if err != nil {
+			log.Fatalf("Cannot close session: %v", err)
+		}
+	}(b.s)
 
 	createdCommands, err := b.s.ApplicationCommandBulkOverwrite(b.s.State.User.ID, GUILD_ID, b.commands)
 	if err != nil {

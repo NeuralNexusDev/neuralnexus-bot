@@ -4,8 +4,8 @@ import (
 	"log"
 	"strconv"
 
-	bot "github.com/NeuralNexusDev/neuralnexus-discord-bot/src/discord"
 	"github.com/NeuralNexusDev/neuralnexus-discord-bot/src/api"
+	bot "github.com/NeuralNexusDev/neuralnexus-discord-bot/src/discord"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -46,7 +46,7 @@ var GSSCommand = &discordgo.ApplicationCommand{
 	},
 }
 
-// GSSCommandHandler game server status command handler
+// GSSHandler game server status command handler
 func GSSHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 	options := i.ApplicationCommandData().Options
 	game := options[0].StringValue()
@@ -72,7 +72,7 @@ func GSSHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		description += "Players: " + strconv.Itoa(status.NumPlayers) + "/" + strconv.Itoa(status.MaxPlayers)
 	}
 
-	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+	err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Embeds: []*discordgo.MessageEmbed{
@@ -84,4 +84,8 @@ func GSSHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			},
 		},
 	})
+	if err != nil {
+		log.Printf("Failed to respond to interaction: %v", err)
+		return
+	}
 }

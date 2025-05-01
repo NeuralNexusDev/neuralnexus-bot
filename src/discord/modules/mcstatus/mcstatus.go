@@ -1,11 +1,12 @@
 package mcstatus
 
 import (
+	"log"
 	"strconv"
 	"strings"
 
-	bot "github.com/NeuralNexusDev/neuralnexus-discord-bot/src/discord"
 	"github.com/NeuralNexusDev/neuralnexus-discord-bot/src/api"
+	bot "github.com/NeuralNexusDev/neuralnexus-discord-bot/src/discord"
 	"github.com/bwmarrin/discordgo"
 )
 
@@ -53,7 +54,7 @@ func MCStatusHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 		description := "Whoops, something went wrong,\n"
 		description += "couldn't reach " + host + ".\t¯\\\\_(\"/)\\_/¯" + "\n"
 		description += err.Error()
-		s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+		err := s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 			Type: discordgo.InteractionResponseChannelMessageWithSource,
 			Data: &discordgo.InteractionResponseData{
 				Embeds: []*discordgo.MessageEmbed{
@@ -65,10 +66,14 @@ func MCStatusHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 				},
 			},
 		})
+		if err != nil {
+			log.Printf("Failed to respond to interaction: %v", err)
+			return
+		}
 		return
 	}
 
-	s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
+	err = s.InteractionRespond(i.Interaction, &discordgo.InteractionResponse{
 		Type: discordgo.InteractionResponseChannelMessageWithSource,
 		Data: &discordgo.InteractionResponseData{
 			Embeds: []*discordgo.MessageEmbed{
@@ -104,4 +109,8 @@ func MCStatusHandler(s *discordgo.Session, i *discordgo.InteractionCreate) {
 			},
 		},
 	})
+	if err != nil {
+		log.Printf("Failed to respond to interaction: %v", err)
+		return
+	}
 }

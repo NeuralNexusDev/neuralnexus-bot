@@ -4,6 +4,7 @@ import (
 	"github.com/bwmarrin/discordgo"
 )
 
+//goland:noinspection GoSnakeCaseUsage
 const (
 	EMBED_GREEN  = 0x65bf65
 	EMBED_YELLOW = 0xe6d132
